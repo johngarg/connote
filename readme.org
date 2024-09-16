@@ -1,0 +1,16 @@
+#+title: Connote
+
+A version of [[https://protesilaos.com/emacs/denote][Denote]] written in C.
+
+* Renaming files
+
+#+begin_src console
+connote file <file> --title <title> --keywords <kw1> <kw2> --sig <sig>
+#+end_src
+
+Will rename =<file>= with the properties provided. If a file is already in valid denote format, its properties are preserved unless explicitly overridden.
+
+#+begin_src console
+> connote file 20240916T181434__kw1.md --title "This is a title"
+20240916T181434-this-is-a-title__kw1.md
+#+end_src

@@ -1,0 +1,11 @@
+*.md
+*.txt
+
+.aider*
+.DS_Store
+.idea
+*.log
+tmp/
+build/
+bin/
+*.dSYM/
