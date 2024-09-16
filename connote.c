@@ -13,6 +13,22 @@
 #define MAX_KEYS 16
 #define MAX_NAME_LEN 512
 
+
+void regularise_name(char *name) {
+    // Reads through `name` and replaces bad characters
+    for (int i = 0; name[i]; i++) {
+        if (name[i] == ' ') {
+            name[i] = '-';
+        } else if (name[i] == '_') {
+            name[i] = '-';
+        } else if (name[i] == '=') {
+            name[i] = '-';
+        } else {
+            name[i] = tolower(name[i]);
+        }
+    }
+}
+
 void test_argument_parsing(char **argv, int argc, const char *title, const char *sig, int kw_count, char **keywords) {
     printf("TITLE: %s\n", title ? title : "None");
     printf("KEYWORDS: \n");
@@ -108,8 +124,8 @@ int main(int argc, char *argv[]) {
                 title = optarg;  // Get title argument
                 break;
             case 'k':
-                keywords[kw_count++] = optarg;
                 // Get keywords, assuming they are separated by spaces and provided as multiple arguments
+                keywords[kw_count++] = optarg;
                 while (optind < argc && argv[optind][0] != '-') {
                     keywords[kw_count++] = argv[optind++];
                     if (kw_count >= MAX_KEYS) {
