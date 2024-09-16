@@ -7,26 +7,55 @@
 #include <time.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdbool.h>
+#include <regex.h>
 
 // connote <cmd> --title <title> --keywords <kw1> <kw2> --sig <sig>
 
 #define MAX_KEYS 16
 #define MAX_NAME_LEN 512
 
+#define ID_FORMAT "%Y%m%dT%H%M%S"
+#define ID_REGEX "([0-9]{8})T([0-9]{6})"
+#define ID_LEN 15
 
-void regularise_name(char *name) {
-    // Reads through `name` and replaces bad characters
-    for (int i = 0; name[i]; i++) {
-        if (name[i] == ' ') {
-            name[i] = '-';
-        } else if (name[i] == '_') {
-            name[i] = '-';
-        } else if (name[i] == '=') {
-            name[i] = '-';
-        } else {
-            name[i] = tolower(name[i]);
+// Be careful to escape backslashes in the macro
+#define ID_REGEX "([0-9]{8})T([0-9]{6})"
+#define TITLE_REGEX "--([^=|\\.|_|@]*)((==.*|__.*|@@" ID_REGEX "|\\..*)*)$"
+#define SIG_REGEX "==([^-|\\.|_|@]*)(--.*|__.*|@@" ID_REGEX "|\\..*)$"
+#define KW_REGEX "__([^-|\\.|=|@]*)(--.*|__.*|@@" ID_REGEX "|\\..*)$"
+
+#define UNWANTED_CHARS "[]{}!@#$%^&*()=+'\"?,.\\|;:~`‘’“”/]*"
+
+// Function to check if a character is in the set of unwanted characters
+bool is_unwanted_char(char c) {
+    return strchr(UNWANTED_CHARS, c) != NULL;
+}
+
+// Function to remove unwanted characters from a string
+void remove_unwanted_chars(char *str) {
+    int src = 0, dst = 0;
+
+    while (str[src] != '\0') {
+        if (!is_unwanted_char(str[src])) {
+            str[dst++] = str[src];
         }
+        src++;
     }
+
+    // Null-terminate the result string
+    str[dst] = '\0';
+}
+
+// TODO Replace spaces and underscores with hyphens in `str`.
+void hyphenate(char *str) {
+  for (int i = 0; str[i]; i++) {
+    if (str[i] == ' ') {
+      str[i] = '-';
+    } else if (str[i] == '_') {
+      str[i] = '-';
+    }
+  }
 }
 
 void test_argument_parsing(char **argv, int argc, const char *title, const char *sig, int kw_count, char **keywords) {
@@ -46,48 +75,48 @@ void test_argument_parsing(char **argv, int argc, const char *title, const char 
     }
 }
 
-int file_exists(const char *filename) {
+bool file_exists(const char *filename) {
     return access(filename, F_OK) != -1; // F_OK checks for file existence
 }
 
-int file_creation_timestamp(const char *file_path, char *dest) {
+bool file_creation_timestamp(const char *file_path, char *dest) {
     // Copies creation timestamp of file located at `file_path` to the string `dest`
     struct stat file_stat;
 
     // Get file status information
     if (stat(file_path, &file_stat) == -1) {
         fprintf(stderr, "ERROR: Problem reading creation date of %s", file_path);
-        return 0;
+        return false;
     }
 
     // Convert the st_ctime (metadata change time) to local time
     struct tm *t = localtime(&file_stat.st_ctime);
 
-    // Format the time as "%Y%m%dT%H%M%S" (15 characters + null termination).
-    // Returns the number of characters in the array, not counting the
-    // terminating NUL.
-    assert(strftime(dest, 16, "%Y%m%dT%H%M%S", t) == 15);
+    // Returns the number of characters in the array, not counting the string
+    // termination.
+    assert(strftime(dest, ID_LEN+1, ID_FORMAT, t) == ID_LEN);
 
-    return 1;
+    return true;
 }
 
 void print_usage() {
     printf("Usage: connote file --title <title> --keywords <kw1> <kw2> <kw3> --sig <signature>\n");
 }
 
-int has_valid_id(const char *s) {
-    // 20240908T123445
-    if (s[8] != 'T') return 0;
+bool has_valid_id(const char *s) {
+    // Expects input like "20240908T123445". This would need to be changed if
+    // ID_FORMAT is changed
+    if (s[8] != 'T') return false;
 
     for (int i = 0; i < 8; ++i) {
-        if (!isdigit(s[i])) return 0;
+        if (!isdigit(s[i])) return false;
     }
 
-    for (int i = 9; i < 15; ++i) {
-        if (!isdigit(s[i])) return 0;
+    for (int i = 9; i < ID_LEN; ++i) {
+        if (!isdigit(s[i])) return false;
     }
 
-    return 1;
+    return true;
 }
 
 void make_filename(char *dest, char *id, const char *sig, const char *title, char **keywords) {
@@ -118,10 +147,14 @@ int main(int argc, char *argv[]) {
 
     // Parsing options
     int opt;
+    bool signature_set = false;
+    bool title_set = false;
+    bool keywords_set = false;
     while ((opt = getopt_long(argc, argv, "t:k:s:y", long_options, NULL)) != -1) {
         switch (opt) {
             case 't':
                 title = optarg;  // Get title argument
+                title_set = true;
                 break;
             case 'k':
                 // Get keywords, assuming they are separated by spaces and provided as multiple arguments
@@ -133,9 +166,11 @@ int main(int argc, char *argv[]) {
                         break;
                     }
                 }
+                keywords_set = true;
                 break;
             case 's':
                 sig = optarg;  // Get signature argument
+                signature_set = true;
                 break;
             case 'y':
                 // This is reached when --from-yaml is encountered
@@ -150,8 +185,9 @@ int main(int argc, char *argv[]) {
     test_argument_parsing(argv, argc, title, sig, kw_count, keywords);
 
     // Allocate a buffer of 15 chars + the null terminator for the ID
-    char id[15+1];
+    char id[ID_LEN+1];
 
+    bool creation_timestamp_okay;
     // connote file command
     if (argc > 1 && strcmp(argv[optind], "file") == 0) {
         // Increment past the <cmd> argument
@@ -167,10 +203,25 @@ int main(int argc, char *argv[]) {
                 strncpy(id, argv[i], 15);
                 id[15] = '\0';
             } else {
-                // Returns 1 if creation is successful
-                if (!file_creation_timestamp(argv[i], id)) {
-                    return EXIT_FAILURE;
-                }
+                // Returns true if extraction of creation timestamp is
+                // successful
+                creation_timestamp_okay = file_creation_timestamp(argv[i], id);
+                if (!creation_timestamp_okay) return EXIT_FAILURE;
+            }
+
+            assert(0 && "Not implemented");
+
+            // Try and read the signature
+            if (!signature_set) {
+
+            }
+            // Try and read the title
+            if (!title_set) {
+
+            }
+            // Try and read the keywords
+            if (!keywords_set) {
+
             }
 
             // Write the new filename to new_file_name
