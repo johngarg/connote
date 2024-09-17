@@ -182,6 +182,88 @@ bool match_pattern_against_str(char *str, char *pattern, size_t start, size_t en
 
 }
 
+// Function to copy a slice into a pre-allocated destination string
+bool str_copy_slice(const char* src, size_t start, size_t end, char* dest, size_t dest_size) {
+    size_t length = end - start;
+    bool overflow = false;
+
+    // Ensure we don't copy more than the destination can hold
+    if (length >= dest_size) {
+        length = dest_size - 1;
+        overflow = true;
+    }
+
+    // Copy the slice into the destination string
+    strncpy(dest, src + start, length);
+
+    // Add null terminator to the destination string
+    dest[length] = '\0';
+
+    return !overflow;
+}
+
+// Function to append a slice of a string to a buffer using snprintf
+bool str_append_slice(const char* src, size_t start, size_t end, char* dest, size_t dest_size, size_t* current_pos) {
+    size_t length = end - start;
+    bool overflow = false;
+
+    // Ensure we don't append more than the remaining buffer can hold
+    if (*current_pos + length >= dest_size) {
+        length = dest_size - *current_pos - 1;  // Leave space for null terminator
+        overflow = true;
+    }
+
+    // Append the slice using snprintf and update the current position
+    snprintf(dest + *current_pos, dest_size - *current_pos, "%.*s", (int)length, src + start);
+    *current_pos += length;  // Update the current position
+
+    return !overflow;
+}
+
+bool construct_filename(char *id, const char *sig, const char *title, char **keywords, size_t kw_count, int type, char *dest_filename) {
+    size_t max_len_without_ext = MAX_NAME_LEN-4;
+    size_t current_pos = 0;
+
+    // If there is no ID, we cannot construct a filename
+    if (id == NULL || id[0] == '\0') {
+        fprintf(stderr, "ERROR: No ID passed to construct_filename.\n");
+        return false;
+    }
+
+    str_append_slice(id, 0, ID_LEN, dest_filename, max_len_without_ext, &current_pos);
+
+    if (sig != NULL && sig[0] != '\0') {
+        str_append_slice("==", 0, 2, dest_filename, max_len_without_ext, &current_pos);
+        str_append_slice(sig, 0, strlen(sig), dest_filename, max_len_without_ext, &current_pos);
+    }
+
+    if (title != NULL && title[0] != '\0') {
+        str_append_slice("--", 0, 2, dest_filename, max_len_without_ext,
+                         &current_pos);
+        str_append_slice(title, 0, strlen(title), dest_filename,
+                         max_len_without_ext, &current_pos);
+    }
+
+    if (kw_count > 0) {
+        str_append_slice("_", 0, 1, dest_filename, max_len_without_ext,
+                         &current_pos);
+        for (int i = 0; i < kw_count; i++) {
+            str_append_slice("_", 0, 1, dest_filename, max_len_without_ext,
+                             &current_pos);
+            str_append_slice(keywords[i], 0, strlen(keywords[i]), dest_filename,
+                             max_len_without_ext, &current_pos);
+        }
+    }
+
+    if (type == 1) {
+        str_append_slice(".md", 0, 3, dest_filename, max_len_without_ext, &current_pos);
+        return true;
+    }
+
+    fprintf(stderr, "ERROR: Currently only markdown format with yaml frontmatter is supported.\n");
+    return false;
+}
+
 
 bool write_new_connote_file(char *id, const char *title, const char *signature, char **keywords, int type, char *dest_filename) {
     // Write a new file and (1) provide it with a denote-compliant filename from
@@ -190,8 +272,8 @@ bool write_new_connote_file(char *id, const char *title, const char *signature, 
     //
     // The `type` argument is:
     //   0: For an org file
-    //   1: For a Markdown file with yaml frontmatter
-    //   2: For a Markdown file with toml frontmatter
+    //   1: For a markdown file with yaml frontmatter
+    //   2: For a markdown file with toml frontmatter
     //   3: For a txt file
 
     printf("Write new connote file!\n");

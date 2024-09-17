@@ -26,6 +26,9 @@ void replace_non_ascii(char *str);
 bool generate_timestamp_now(char *dest);
 void append_slice(const char* src, size_t start, size_t end, char* dest, size_t dest_size, size_t* current_pos);
 bool match_pattern_against_str(char *str, char *pattern, size_t start, size_t end);
+bool str_copy_slice(const char* src, size_t start, size_t end, char* dest, size_t dest_size);
+bool str_append_slice(const char* src, size_t start, size_t end, char* dest, size_t dest_size, size_t* current_pos);
+bool construct_filename(char *id, const char *sig, const char *title, char **keywords, size_t kw_count, int type, char *dest_filename);
 bool write_new_connote_file(char *id, const char *title, const char *signature, char **keywords, int type, char *dest_filename);
 
 #endif // UTILS_H_
