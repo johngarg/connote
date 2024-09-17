@@ -13,8 +13,8 @@
 
 // Function to trim a string
 void trimString(char *str) {
-  int start = 0;
-  int end = strlen(str) - 1;
+  size_t start = 0;
+  size_t end = strlen(str) - 1;
 
   // Remove leading whitespace
   while (isspace(str[start])) {
@@ -70,7 +70,7 @@ void replace_spaces_and_underscores(char *str, char s) {
 
 void replace_ch1_with_ch2_in_dest(char *source, char *dest, char ch1,
                                   char ch2) {
-  int i;
+  size_t i;
   for (i = 0; i < strlen(source); i++) {
     if (source[i] == ch1) {
       dest[i] = ch2;
@@ -256,7 +256,7 @@ bool construct_filename(char *id, const char *sig, const char *title,
   if (kw_count > 0) {
     str_append_slice("_", 0, 1, dest_filename, max_len_without_ext,
                      &current_pos);
-    for (int i = 0; i < kw_count; i++) {
+    for (size_t i = 0; i < kw_count; i++) {
       str_append_slice("_", 0, 1, dest_filename, max_len_without_ext,
                        &current_pos);
       str_append_slice(keywords[i], 0, strlen(keywords[i]), dest_filename,
@@ -318,7 +318,7 @@ void write_frontmatter_to_buffer(char *buffer, size_t buffer_size, char *id,
   remaining_size -= written;
 
   // Iterate through the keywords and print
-  for (int i = 0; i < kw_count; i++) {
+  for (size_t i = 0; i < kw_count; i++) {
     written = snprintf(buf_ptr, remaining_size, "%s", keywords[i]);
     buf_ptr += written;
     remaining_size -= written;
