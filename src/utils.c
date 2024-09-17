@@ -72,6 +72,18 @@ void replace_spaces_and_underscores(char *str, char s) {
   }
 }
 
+void replace_ch1_with_ch2_in_dest(char *source, char *dest, char ch1, char ch2) {
+    int i;
+    for (i = 0; i < strlen(source); i++) {
+        if (source[i] == ch1) {
+            dest[i] = ch2;
+        } else {
+            dest[i] = source[i];
+        }
+    }
+    dest[i] = '\0'; // Terminate the string
+}
+
 // Replace non-ascii characters with spaces
 void replace_non_ascii(char *str) {
   while (*str) {
@@ -128,19 +140,6 @@ bool has_valid_id(const char *str) {
     }
 
     return true;
-}
-
-void append_slice(const char* src, size_t start, size_t end, char* dest, size_t dest_size, size_t* current_pos) {
-    size_t length = end - start;
-
-    // Ensure we don't append more than the remaining buffer can hold
-    if (*current_pos + length >= dest_size) {
-        length = dest_size - *current_pos - 1;  // Leave space for null terminator
-    }
-
-    // Append the slice using snprintf and update the current position
-    snprintf(dest + *current_pos, dest_size - *current_pos, "%.*s", (int)length, src + start);
-    *current_pos += length;  // Update the current position
 }
 
 bool match_pattern_against_str(char *str, char *pattern, size_t start, size_t end) {
@@ -230,7 +229,7 @@ bool construct_filename(char *id, const char *sig, const char *title, char **key
         return false;
     }
 
-    str_append_slice(id, 0, ID_LEN, dest_filename, max_len_without_ext, &current_pos);
+    str_append_slice(id, 0, strlen(id), dest_filename, max_len_without_ext, &current_pos);
 
     if (sig != NULL && sig[0] != '\0') {
         str_append_slice("==", 0, 2, dest_filename, max_len_without_ext, &current_pos);
@@ -264,6 +263,84 @@ bool construct_filename(char *id, const char *sig, const char *title, char **key
     return false;
 }
 
+// Function to write frontmatter to a buffer instead of a file
+void write_frontmatter_to_buffer(char *buffer, size_t buffer_size, char *id, char *sig, char *title, char **keywords, size_t kw_count) {
+    char *buf_ptr = buffer;
+    size_t remaining_size = buffer_size;
+
+    // Use snprintf to write to the buffer instead of fprintf
+    int written = snprintf(buf_ptr, remaining_size, "---\n");
+    buf_ptr += written;
+    remaining_size -= written;
+
+    // TITLE
+    written = snprintf(buf_ptr, remaining_size, "title: %s\n", title ? title : "");
+    buf_ptr += written;
+    remaining_size -= written;
+
+    // DATE
+    // Get date from ID
+    struct tm t = {0};
+    // Parse the input string "YYYYMMDDTHHMMSS"
+    sscanf(id, "%4d%2d%2dT%2d%2d%2d", &t.tm_year, &t.tm_mon, &t.tm_mday,
+           &t.tm_hour, &t.tm_min, &t.tm_sec);
+    // Adjust the values for tm structure
+    t.tm_year -= 1900; // tm_year is years since 1900
+    t.tm_mon -= 1;     // tm_mon is 0-11
+    // Format the time into the desired output format
+    char date[20]; // Buffer to hold the formatted time
+    strftime(date, sizeof(date), "%Y-%m-%dT%H:%M:%S", &t);
+
+    // Write the formatted date to the buffer
+    written = snprintf(buf_ptr, remaining_size, "date: %s\n", date);
+    buf_ptr += written;
+    remaining_size -= written;
+
+    // KEYWORDS
+    // I like to call keywords tags
+    written = snprintf(buf_ptr, remaining_size, "tags: [");
+    buf_ptr += written;
+    remaining_size -= written;
+
+    // Iterate through the keywords and print
+    for (int i = 0; i < kw_count; i++) {
+        written = snprintf(buf_ptr, remaining_size, "%s", keywords[i]);
+        buf_ptr += written;
+        remaining_size -= written;
+
+        if (i < kw_count - 1) {
+            written = snprintf(buf_ptr, remaining_size, ", ");
+            buf_ptr += written;
+            remaining_size -= written;
+        }
+    }
+
+    written = snprintf(buf_ptr, remaining_size, "]\n");
+    buf_ptr += written;
+    remaining_size -= written;
+
+    // ID
+    written = snprintf(buf_ptr, remaining_size, "identifier: %s\n", id);
+    buf_ptr += written;
+    remaining_size -= written;
+
+    // SIGNATURE
+    // Replace '=' with '.' in the signature
+    char new_sig[MAX_SIG_LEN];
+    replace_ch1_with_ch2_in_dest(sig, new_sig, '=', '.');
+
+    written = snprintf(buf_ptr, remaining_size, "signature: %s\n", sig ? new_sig : "");
+    buf_ptr += written;
+    remaining_size -= written;
+
+    // ALIASES
+    written = snprintf(buf_ptr, remaining_size, "aliases: [%s]\n", id);
+    buf_ptr += written;
+    remaining_size -= written;
+
+    // Finalize frontmatter
+    written = snprintf(buf_ptr, remaining_size, "---");
+}
 
 bool write_new_connote_file(char *id, const char *title, const char *signature, char **keywords, int type, char *dest_filename) {
     // Write a new file and (1) provide it with a denote-compliant filename from

@@ -6,6 +6,7 @@
 // Macros
 #define MAX_KEYS 16
 #define MAX_NAME_LEN 512
+#define MAX_SIG_LEN 64
 #define UNWANTED_CHARS "[]{}!@#$%^&*()=+'\"?,.\\|;:~`‘’“”/]*"
 #define ID_FORMAT "%Y%m%dT%H%M%S"
 #define ID_LEN 15
@@ -30,5 +31,7 @@ bool str_copy_slice(const char* src, size_t start, size_t end, char* dest, size_
 bool str_append_slice(const char* src, size_t start, size_t end, char* dest, size_t dest_size, size_t* current_pos);
 bool construct_filename(char *id, const char *sig, const char *title, char **keywords, size_t kw_count, int type, char *dest_filename);
 bool write_new_connote_file(char *id, const char *title, const char *signature, char **keywords, int type, char *dest_filename);
+void write_frontmatter_to_buffer(char *buffer, size_t buffer_size, char *id, char *sig, char *title, char **keywords, size_t kw_count);
+void replace_ch1_with_ch2_in_dest(char *source, char *dest, char ch1, char ch2);
 
 #endif // UTILS_H_
