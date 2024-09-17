@@ -10,5 +10,6 @@ connote: src/connote.c src/utils.c
 
 test: tests/test_*.c src/utils.c
 	$(CC) $(CFLAGS) -o $(BIN_DIR)/$@ $^
+	./bin/test
 
 .PHONY: all clean
