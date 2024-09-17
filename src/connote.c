@@ -114,7 +114,6 @@ int main(int argc, char *argv[]) {
     non_option_args++;
   }
 
-  printf("argc: %d\n", non_option_args);
   // connote file command
   if (non_option_args > 1 && strcmp(cmd, "file") == 0) {
     // If argc > 1 and the first argument is "file", we are trying to rename
@@ -157,7 +156,7 @@ int main(int argc, char *argv[]) {
       // Write the new filename to new_file_name
       make_filename(new_file_name, id, sig, title, keywords);
     }
-  } else {
+  } else if (strcmp(cmd, "file") == 0) {
     // Here we are writing a new file
 
     // Make a new ID based on the current time
@@ -171,7 +170,6 @@ int main(int argc, char *argv[]) {
     write_new_connote_file(id, title, sig, keywords, 0, new_file_name);
   }
 
-  printf("cmd: %s\n", cmd);
 
   return EXIT_SUCCESS;
 }
