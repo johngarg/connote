@@ -8,7 +8,7 @@ connote: src/connote.c src/utils.c
 	@mkdir -p $(BIN_DIR)
 	$(CC) $(CFLAGS) -o $(BIN_DIR)/note $^
 
-test: tests/test_*.c
-	$(CC) $(CFLAGS) -o $@ $^
+test: tests/test_*.c src/utils.c
+	$(CC) $(CFLAGS) -o $(BIN_DIR)/$@ $^
 
 .PHONY: all clean
