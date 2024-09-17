@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <unistd.h>
 #include <stdbool.h>
 #include <string.h>
@@ -10,6 +11,31 @@
 
 #include "utils.h"
 
+// Function to trim a string
+void trimString(char *str) {
+  int start = 0;
+  int end = strlen(str) - 1;
+
+  // Remove leading whitespace
+  while (isspace(str[start])) {
+    start++;
+  }
+
+  // Remove trailing whitespace
+  while (end > start && isspace(str[end])) {
+    end--;
+  }
+
+  // If the string was trimmed, adjust the null terminator
+  if (start > 0 || end < (strlen(str) - 1)) {
+    memmove(str, str + start, end - start + 1);
+    str[end - start + 1] = '\0';
+  }
+}
+
+void remove_char_from_string(char *str, char c) {
+
+}
 
 // Function to check if a character is in the set of unwanted characters
 bool is_unwanted_char(char c) {
@@ -35,14 +61,24 @@ bool file_exists(const char *filename) {
     return access(filename, F_OK) != -1; // F_OK checks for file existence
 }
 
-// TODO Replace spaces and underscores with hyphens in `str`.
-void hyphenate(char *str) {
+// Replace spaces and underscores with `s` in `str`.
+void replace_spaces_and_underscores(char *str, char s) {
   for (int i = 0; str[i]; i++) {
     if (str[i] == ' ') {
-      str[i] = '-';
+      str[i] = s;
     } else if (str[i] == '_') {
-      str[i] = '-';
+      str[i] = s;
     }
+  }
+}
+
+// Replace non-ascii characters with spaces
+void replace_non_ascii(char *str) {
+  while (*str) {
+    if (*str < 0 || *str > 127) {
+      *str = ' ';
+    }
+    str++;
   }
 }
 
@@ -52,7 +88,7 @@ bool file_creation_timestamp(const char *file_path, char *dest) {
 
     // Get file status information
     if (stat(file_path, &file_stat) == -1) {
-        fprintf(stderr, "ERROR: Problem reading creation date of %s", file_path);
+        fprintf(stderr, "ERROR: Problem reading creation date of %s.\n", file_path);
         return false;
     }
 
@@ -63,6 +99,18 @@ bool file_creation_timestamp(const char *file_path, char *dest) {
     // termination.
     assert(strftime(dest, ID_LEN+1, ID_FORMAT, t) == ID_LEN);
 
+    return true;
+}
+
+// Puts the current date and time into `dest`
+bool generate_timestamp_now(char *dest) {
+    struct tm *local;
+    time_t t = time(NULL);
+    local = localtime(&t);
+    if (strftime(dest, ID_LEN+1, ID_FORMAT, local) == 0) {
+        fprintf(stderr, "ERROR: Failed to format time when generating new timestamp.\n");
+        return false;
+    };
     return true;
 }
 
@@ -78,6 +126,75 @@ bool has_valid_id(const char *str) {
     for (int i = 9; i < ID_LEN; ++i) {
         if (!isdigit(str[i])) return false;
     }
+
+    return true;
+}
+
+void append_slice(const char* src, size_t start, size_t end, char* dest, size_t dest_size, size_t* current_pos) {
+    size_t length = end - start;
+
+    // Ensure we don't append more than the remaining buffer can hold
+    if (*current_pos + length >= dest_size) {
+        length = dest_size - *current_pos - 1;  // Leave space for null terminator
+    }
+
+    // Append the slice using snprintf and update the current position
+    snprintf(dest + *current_pos, dest_size - *current_pos, "%.*s", (int)length, src + start);
+    *current_pos += length;  // Update the current position
+}
+
+bool match_pattern_against_str(char *str, char *pattern, size_t start, size_t end) {
+    // Matches the regex `pattern` against `str` and puts the start and end
+    // indices of the successful match in `start` and `end`. Returns `true` if
+    // match found and false otherwise
+    regex_t regex;
+    regmatch_t matches[5];
+    int reti;
+
+    // Compile the regular expression
+    reti = regcomp(&regex, pattern, REG_EXTENDED);
+    if (reti) {
+        fprintf(stderr, "Could not compile regex\n");
+        return false;
+    }
+
+    // Execute the regular expression
+    reti = regexec(&regex, str, 5, matches, 0);
+    if (!reti && matches[1].rm_so != -1) {
+        // Match found!
+        // As defined, all regex expressions contain the match in index 1
+        start = matches[1].rm_so;
+        end = matches[1].rm_eo;
+        return true;
+    }
+
+    if (reti != REG_NOMATCH) {
+        // Something went wrong
+        char msgbuf[128];
+        regerror(reti, &regex, msgbuf, sizeof(msgbuf));
+        fprintf(stderr, "ERROR: Regex match failed: %s\n", msgbuf);
+    }
+
+    // Free compiled regular expression
+    regfree(&regex);
+
+    return false;
+
+}
+
+
+bool write_new_connote_file(char *id, const char *title, const char *signature, char **keywords, int type, char *dest_filename) {
+    // Write a new file and (1) provide it with a denote-compliant filename from
+    // the data passed in and save this to `dest_filename`, and (2) write the
+    // associated frontmatter to the beginning of the file.
+    //
+    // The `type` argument is:
+    //   0: For an org file
+    //   1: For a Markdown file with yaml frontmatter
+    //   2: For a Markdown file with toml frontmatter
+    //   3: For a txt file
+
+    printf("Write new connote file!\n");
 
     return true;
 }

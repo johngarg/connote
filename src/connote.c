@@ -62,6 +62,7 @@ int main(int argc, char *argv[]) {
     bool signature_set = false;
     bool title_set = false;
     bool keywords_set = false;
+
     while ((opt = getopt_long(argc, argv, "t:k:s:y", long_options, NULL)) != -1) {
         switch (opt) {
             case 't':
@@ -96,14 +97,27 @@ int main(int argc, char *argv[]) {
     // Output the parsed arguments for testing purposes
     test_argument_parsing(argv, argc, title, sig, kw_count, keywords);
 
+    // Allocate MAX_NAME_LEN for new file name
+    char new_file_name[MAX_NAME_LEN];
     // Allocate a buffer of 15 chars + the null terminator for the ID
     char id[ID_LEN+1];
 
     bool creation_timestamp_okay;
+
+    // Count the non-option arguments
+    int non_option_args = 0;
+    char *cmd = argv[optind];
+    for (int index = optind; index < argc; index++) {
+        non_option_args++;
+    }
+
+    printf("argc: %d\n", non_option_args);
     // connote file command
-    if (argc > 1 && strcmp(argv[optind], "file") == 0) {
-        // Increment past the <cmd> argument
-        optind++;
+    if (non_option_args > 1 && strcmp(cmd, "file") == 0) {
+        // If argc > 1 and the first argument is "file", we are trying to rename
+        // an existing file
+
+        optind++; // Increment past the <cmd> argument
         // Loop over input files and rename them
         for (int i = optind; i < argc; i++) {
 
@@ -123,6 +137,9 @@ int main(int argc, char *argv[]) {
 
             assert(0 && "Not implemented");
 
+            /* remove_unwanted_chars(title); */
+            /* printf("Cleaned: %s\n", title); */
+
             // Try and read the signature
             if (!signature_set) {
 
@@ -137,10 +154,22 @@ int main(int argc, char *argv[]) {
             }
 
             // Write the new filename to new_file_name
-            char new_file_name[MAX_NAME_LEN];
             make_filename(new_file_name, id, sig, title, keywords);
         }
+    } else {
+        // Here we are writing a new file
+
+        // Make a new ID based on the current time
+        bool timestamp_generation_okay = generate_timestamp_now(id);
+        if (!timestamp_generation_okay) return EXIT_FAILURE;
+
+        printf("New id: %s\n", id);
+
+        // TODO Write new file with properties
+        write_new_connote_file(id, title, sig, keywords, 0, new_file_name);
     }
+
+    printf("cmd: %s\n", cmd);
 
     return EXIT_SUCCESS;
 }
