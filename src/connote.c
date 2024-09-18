@@ -9,8 +9,8 @@
 
 // connote <cmd> --title <title> --keywords <kw1> <kw2> --sig <sig>
 
-void test_argument_parsing(char **argv, int argc, const char *title,
-                           const char *sig, int kw_count, char **keywords) {
+void test_argument_parsing(char **argv, int argc, char *sig, char *title,
+                           int kw_count, char **keywords) {
   printf("TITLE: %s\n", title ? title : "None");
   printf("KEYWORDS: \n");
   if (kw_count > 0) {
@@ -32,11 +32,6 @@ void print_usage() {
          "--sig <signature>\n");
 }
 
-void make_filename(char *dest, char *id, const char *sig, const char *title,
-                   char **keywords) {
-  assert(0 && "Not implemented");
-}
-
 int main(int argc, char *argv[]) {
   // Expect at least three args: `connote <cmd> <arg>`
   if (argc < 3) {
@@ -45,8 +40,8 @@ int main(int argc, char *argv[]) {
   }
 
   // Initialise the filename data
-  const char *title = NULL;
-  const char *sig = NULL;
+  char *title = NULL;
+  char *sig = NULL;
   char *keywords[MAX_KEYS]; // Array to store keywords, assuming max 10
   int kw_count = 0;
 
@@ -98,7 +93,7 @@ int main(int argc, char *argv[]) {
   }
 
   // Output the parsed arguments for testing purposes
-  test_argument_parsing(argv, argc, title, sig, kw_count, keywords);
+  test_argument_parsing(argv, argc, sig, title, kw_count, keywords);
 
   // Allocate MAX_NAME_LEN for new file name
   char new_file_name[MAX_NAME_LEN];
@@ -154,7 +149,7 @@ int main(int argc, char *argv[]) {
       }
 
       // Write the new filename to new_file_name
-      make_filename(new_file_name, id, sig, title, keywords);
+      /* make_filename(new_file_name, id, sig, title, keywords); */
     }
   } else if (strcmp(cmd, "file") == 0) {
     // Here we are writing a new file
@@ -167,9 +162,10 @@ int main(int argc, char *argv[]) {
     printf("New id: %s\n", id);
 
     // TODO Write new file with properties
-    write_new_connote_file(id, title, sig, keywords, 0, new_file_name);
+    write_new_connote_file(id, sig, title, keywords, kw_count, 1,
+                           new_file_name);
+    printf("File created: %s", new_file_name);
   }
-
 
   return EXIT_SUCCESS;
 }

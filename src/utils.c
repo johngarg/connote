@@ -224,9 +224,8 @@ bool str_append_slice(const char *src, size_t start, size_t end, char *dest,
   return !overflow;
 }
 
-bool construct_filename(char *id, const char *sig, const char *title,
-                        char **keywords, size_t kw_count, int type,
-                        char *dest_filename) {
+bool construct_filename(char *id, char *sig, char *title, char **keywords,
+                        size_t kw_count, int type, char *dest_filename) {
   size_t max_len_without_ext = MAX_NAME_LEN - 4;
   size_t current_pos = 0;
 
@@ -358,8 +357,8 @@ void write_frontmatter_to_buffer(char *buffer, size_t buffer_size, char *id,
   written = snprintf(buf_ptr, remaining_size, "---");
 }
 
-bool write_new_connote_file(char *id, const char *title, const char *signature,
-                            char **keywords, int type, char *dest_filename) {
+bool write_new_connote_file(char *id, char *sig, char *title, char **keywords,
+                            size_t kw_count, int type, char *dest_filename) {
   // Write a new file and (1) provide it with a denote-compliant filename from
   // the data passed in and save this to `dest_filename`, and (2) write the
   // associated frontmatter to the beginning of the file.
@@ -370,7 +369,22 @@ bool write_new_connote_file(char *id, const char *title, const char *signature,
   //   2: For a markdown file with toml frontmatter
   //   3: For a txt file
 
-  printf("Write new connote file!\n");
+  char buffer[2048];
+  // Write the full title to the frontmatter as provided by the user
+  write_frontmatter_to_buffer(buffer, sizeof(buffer), id, sig, title, keywords,
+                              kw_count);
+
+  // TODO Clean up the title for use in the filename
+  // char new_title[MAX_NAME_LEN];
+  // clean_title(title, new_title);
+
+  construct_filename(id, sig, title, keywords, kw_count, type, dest_filename);
+
+  FILE *f = fopen(dest_filename, "w");
+  if (f) {
+    fprintf(f, "%s", buffer);
+    fclose(f);
+  }
 
   return true;
 }

@@ -33,11 +33,10 @@ bool str_copy_slice(const char *src, size_t start, size_t end, char *dest,
                     size_t dest_size);
 bool str_append_slice(const char *src, size_t start, size_t end, char *dest,
                       size_t dest_size, size_t *current_pos);
-bool construct_filename(char *id, const char *sig, const char *title,
-                        char **keywords, size_t kw_count, int type,
-                        char *dest_filename);
-bool write_new_connote_file(char *id, const char *title, const char *signature,
-                            char **keywords, int type, char *dest_filename);
+bool construct_filename(char *id, char *sig, char *title, char **keywords,
+                        size_t kw_count, int type, char *dest_filename);
+bool write_new_connote_file(char *id, char *sig, char *title, char **keywords,
+                            size_t kw_count, int type, char *dest_filename);
 void write_frontmatter_to_buffer(char *buffer, size_t buffer_size, char *id,
                                  char *sig, char *title, char **keywords,
                                  size_t kw_count);
