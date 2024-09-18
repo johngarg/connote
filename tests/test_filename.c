@@ -57,9 +57,47 @@ void test_write_frontmatter_to_buffer() {
   printf("All tests passed for write_frontmatter_to_buffer.\n");
 }
 
+void test_sluggify_functions() {
+  char test_str1[32] = "..@#H*έl/lo!!!, --test- ";
+  remove_unwanted_chars(test_str1, UNWANTED_CHARS);
+  assert(strcmp(test_str1, "Hέllo --test- ") == 0);
+
+  // Tests from denote-test
+  char test_str2[32] = "this-is-!@#test";
+  sluggify_title(test_str2);
+  assert(strcmp(test_str2, "this-is-test") == 0);
+
+  char test_str3[64] = "There are no-ASCII ： characters ｜ here 😀";
+  replace_non_ascii(test_str3);
+  assert(strcmp(test_str3, "There are no-ASCII     characters     here     ") == 0);
+
+  char test_str4[64] = "__  This is   a    test  __  ";
+  slug_hyphenate(test_str4);
+  assert(strcmp(test_str4, "This-is-a-test") == 0);
+
+  char test_str5[64] = " ___ !~!!$%^ This iS a tEsT ++ ?? ";
+  sluggify_title(test_str5);
+  assert(strcmp(test_str5, "this-is-a-test") == 0);
+
+  char test_str6[64] = "__  This is   a    test  __  ";
+  slug_put_equals(test_str6);
+  assert(strcmp(test_str6, "This=is=a=test") == 0);
+
+  char test_str7[64] = "--- ___ !~!!$%^ This -iS- a tEsT ++ ?? ";
+  sluggify_signature(test_str7);
+  assert(strcmp(test_str7, "this=is=a=test") == 0);
+
+  char test_str8[64] = "--- ___ !~!!$%^ This -iS- a tEsT ++ ?? ";
+  sluggify_keyword(test_str8);
+  assert(strcmp(test_str8, "thisisatest") == 0);
+
+  printf("All tests passed for sluggify functions.\n");
+}
+
 int main() {
   test_construct_filename();
   test_write_frontmatter_to_buffer();
+  test_sluggify_functions();
 
   return 0;
 }

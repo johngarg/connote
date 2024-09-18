@@ -159,12 +159,9 @@ int main(int argc, char *argv[]) {
     if (!timestamp_generation_okay)
       return EXIT_FAILURE;
 
-    printf("New id: %s\n", id);
-
-    // TODO Write new file with properties
     write_new_connote_file(id, sig, title, keywords, kw_count, 1,
                            new_file_name);
-    printf("File created: %s", new_file_name);
+    printf("%s", new_file_name);
   }
 
   return EXIT_SUCCESS;

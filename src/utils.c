@@ -12,7 +12,7 @@
 #include "utils.h"
 
 // Function to trim a string
-void trimString(char *str) {
+void trim_string(char *str) {
   size_t start = 0;
   size_t end = strlen(str) - 1;
 
@@ -33,17 +33,13 @@ void trimString(char *str) {
   }
 }
 
-void remove_char_from_string(char *str, char c) {}
-
-// Function to check if a character is in the set of unwanted characters
-bool is_unwanted_char(char c) { return strchr(UNWANTED_CHARS, c) != NULL; }
-
-// Function to remove unwanted characters from a string
-void remove_unwanted_chars(char *str) {
+// Function to remove unwanted characters from a string. The predicate function
+// should return true if the char is unwanted and should be removed
+void remove_unwanted_chars(char *str, const char *unwanted_chars) {
   int src = 0, dst = 0;
 
   while (str[src] != '\0') {
-    if (!is_unwanted_char(str[src])) {
+    if (!(strchr(unwanted_chars, str[src]) != NULL)) {
       str[dst++] = str[src];
     }
     src++;
@@ -387,4 +383,138 @@ bool write_new_connote_file(char *id, char *sig, char *title, char **keywords,
   }
 
   return true;
+}
+
+void downcase(char *str) {
+    for (int i = 0; str[i]; i++) {
+        str[i] = tolower((unsigned char) str[i]);
+    }
+}
+
+void replace_consecutive_chars(char *str, char c) {
+    int src = 0, dst = 0;
+    char last_char = '\0';  // To track the previous character
+
+    while (str[src] != '\0') {
+        if (str[src] != c || last_char != c) {
+            str[dst++] = str[src];  // Copy character to destination
+        }
+        last_char = str[src];  // Update the last character
+        src++;
+    }
+
+    // Null-terminate the resulting string
+    str[dst] = '\0';
+}
+
+// Function to trim unwanted tokens from the left of the string
+void ltrim_tokens(char *str, const char *unwanted_chars) {
+    int start = 0;
+
+    // Move 'start' forward as long as the current character is one of the unwanted ones
+    while (str[start] != '\0' && strchr(unwanted_chars, str[start]) != NULL) {
+        start++;
+    }
+
+    // Shift the remaining part of the string to the beginning
+    if (start > 0) {
+        int i = 0;
+        while (str[start] != '\0') {
+            str[i++] = str[start++];
+        }
+        str[i] = '\0';  // Null-terminate the result string
+    }
+}
+
+// Function to trim unwanted tokens from the right of the string
+void rtrim_tokens(char *str, const char *unwanted_chars) {
+    int len = strlen(str);
+
+    // Start from the end of the string and move backwards
+    while (len > 0 && strchr(unwanted_chars, str[len - 1]) != NULL) {
+        len--;  // Reduce length for each unwanted character
+    }
+
+    // Null-terminate the string at the new length
+    str[len] = '\0';
+}
+
+void slug_hyphenate(char *str) {
+  // Replace spaces and underscores with hyphens in str. Also replace multiple
+  // hyphens with a single one and remove any leading and trailing hyphen.
+  replace_spaces_and_underscores(str, '-');
+  replace_consecutive_chars(str, '-');
+  ltrim_tokens(str, "-");
+  rtrim_tokens(str, "-");
+}
+
+void slug_put_equals(char *str) {
+  // Replace spaces and underscores with equals signs in str. Also replace
+  // multiple equals signs with a single one and remove any leading and trailing
+  // signs.
+  replace_spaces_and_underscores(str, '=');
+  replace_consecutive_chars(str, '=');
+  ltrim_tokens(str, "=");
+  rtrim_tokens(str, "=");
+}
+
+void sluggify_title(char *str) {
+    const char *unwanted_chars = "[]{}!@#$%^&*()+'\"?,.\\|;:~`‘’“”/=";
+    // Start by removing whitespace characters at beginning and end
+    trim_string(str);
+    // Remove unwanted characters from the string
+    remove_unwanted_chars(str, unwanted_chars);
+    // Replace spaces and underscores with hyphen for title
+    slug_hyphenate(str);
+    // Downcase everything
+    downcase(str);
+    // Remove consecutive tokens when they mark parts of the file name
+    replace_consecutive_chars(str, '-');
+    replace_consecutive_chars(str, '=');
+    replace_consecutive_chars(str, '@');
+    replace_consecutive_chars(str, '_');
+    // Trim string
+    rtrim_tokens(str, "=@_+-");
+}
+
+void sluggify_signature(char *str) {
+    const char *unwanted_chars = "[]{}!@#$%^&*()+'\"?,.\\|;:~`‘’“”/-";
+    // Start by removing whitespace characters at beginning and end
+    trim_string(str);
+    // Remove unwanted characters from the string
+    remove_unwanted_chars(str, unwanted_chars);
+    // Replace spaces and underscores with equals signs for signature
+    slug_put_equals(str);
+    // Downcase everything
+    downcase(str);
+    // Remove consecutive tokens when they mark parts of the file name
+    replace_consecutive_chars(str, '-');
+    replace_consecutive_chars(str, '=');
+    replace_consecutive_chars(str, '@');
+    replace_consecutive_chars(str, '_');
+    // Trim string
+    rtrim_tokens(str, "=@_+-");
+}
+
+void sluggify_keyword(char *str) {
+    const char *unwanted_chars = "[]{}!@#$%^&*()+'\"?,.\\|;:~`‘’“”/_ -=";
+    // Start by removing whitespace characters at beginning and end
+    trim_string(str);
+    // Remove unwanted characters from the string
+    remove_unwanted_chars(str, unwanted_chars);
+    // Downcase everything
+    downcase(str);
+    // Remove consecutive tokens when they mark parts of the file name
+    replace_consecutive_chars(str, '-');
+    replace_consecutive_chars(str, '=');
+    replace_consecutive_chars(str, '@');
+    replace_consecutive_chars(str, '_');
+    // Trim string
+    rtrim_tokens(str, "=@_+-");
+}
+
+void sluggify_keywords(char **keywords, size_t kw_count) {
+    for (size_t i = 0; i < kw_count; i++) {
+        sluggify_keyword(keywords[i]);
+    }
 }
