@@ -3,6 +3,6 @@
 
 #define MAX_CONFIG_LINE_LENGTH 256
 
-bool connote_dir(char *connote_path);
+int connote_dir(char *connote_path);
 
 #endif // CONFIG_H_

@@ -1,8 +1,8 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 // Macros
 #define MAX_KEYS 16
@@ -18,14 +18,16 @@
 #define KW_REGEX "__([^-|\\.|=|@]*)(--.*|__.*|@@" ID_REGEX "|\\..*)$"
 #define EXT_REGEX "(\\..*)"
 
+enum ErrorCode { SUCCESS = 0, FAILURE = -1 };
+
 // string operations
 void remove_unwanted_chars(char *str, const char *unwanted_chars);
 void replace_spaces_and_underscores(char *str, char s);
 void replace_non_ascii(char *str);
 void append_slice(const char *src, size_t start, size_t end, char *dest, size_t dest_size, size_t *current_pos);
-bool match_pattern_against_str(char *str, char *pattern, size_t start, size_t end);
-bool str_copy_slice(const char *src, size_t start, size_t end, char *dest, size_t dest_size);
-bool str_append_slice(const char *src, size_t start, size_t end, char *dest, size_t dest_size, size_t *current_pos);
+int match_pattern_against_str(char *str, char *pattern, size_t start, size_t end);
+int str_copy_slice(const char *src, size_t start, size_t end, char *dest, size_t dest_size);
+int str_append_slice(const char *src, size_t start, size_t end, char *dest, size_t dest_size, size_t *current_pos);
 void replace_ch1_with_ch2_in_dest(char *source, char *dest, char ch1, char ch2, size_t dest_size);
 void trim_string(char *str);
 void replace_consecutive_chars(char *str, char c);
@@ -34,17 +36,17 @@ void rtrim_tokens(char *str, const char *unwanted_chars);
 void ltrim_tokens(char *str, const char *unwanted_chars);
 
 // Dir stuff
-bool make_directory_if_not_exists(const char *path);
+int make_directory_if_not_exists(const char *path);
 
 // file stuff
-bool file_creation_timestamp(const char *file_path, char *dest);
+int file_creation_timestamp(const char *file_path, char *dest);
 bool has_valid_id(const char *str);
 bool file_exists(const char *filename);
-bool generate_timestamp_now(char *dest);
-bool format_file_name(char *dir_path, char *id, char *sig, char *title, char **keywords, size_t kw_count, char *extension,
-                      char *dest_filename);
-bool connote_file(char *dir_path, char *id, char *sig, char *title, char **keywords, size_t kw_count, char *extension,
-                  char *dest_filename);
+int generate_timestamp_now(char *dest);
+int format_file_name(char *dir_path, char *id, char *sig, char *title, char **keywords, size_t kw_count,
+                     char *extension, char *dest_filename);
+int connote_file(char *dir_path, char *id, char *sig, char *title, char **keywords, size_t kw_count, char *extension,
+                 char *dest_filename);
 void write_frontmatter_to_buffer(char *buffer, size_t buffer_size, char *id, char *sig, char *title, char **keywords,
                                  size_t kw_count);
 

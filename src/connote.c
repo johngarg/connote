@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "utils.h"
 #include "config.h"
+#include "utils.h"
 
 // connote <cmd> --title <title> --keywords <kw1> <kw2> --sig <sig>
 
@@ -122,8 +122,6 @@ int main(int argc, char *argv[]) {
   // Allocate a buffer of 15 chars + the null terminator for the ID
   char id[ID_LEN + 1];
 
-  bool creation_timestamp_okay;
-
   // Count the non-option arguments
   int non_option_args = 0;
   char *cmd = argv[optind];
@@ -150,8 +148,7 @@ int main(int argc, char *argv[]) {
       } else {
         // Returns true if extraction of creation timestamp is
         // successful
-        creation_timestamp_okay = file_creation_timestamp(argv[i], id);
-        if (!creation_timestamp_okay)
+        if (file_creation_timestamp(argv[i], id) != SUCCESS)
           return EXIT_FAILURE;
       }
 
@@ -166,21 +163,18 @@ int main(int argc, char *argv[]) {
       // Try and read the keywords
       if (!keywords_set) {
       }
-
     }
   } else if (strcmp(cmd, "file") == 0) {
     // Here we are writing a new file
 
     // Make a new ID based on the current time
-    bool timestamp_generation_okay = generate_timestamp_now(id);
-    if (!timestamp_generation_okay)
+    if (generate_timestamp_now(id) != SUCCESS)
       return EXIT_FAILURE;
 
     // Create new file with components and write frontmatter
     connote_file(dir_path, id, sig, title, keywords, kw_count, ".md", new_file_name);
     // Print the created file for the user
     printf("%s\n", new_file_name);
-
   }
 
   return EXIT_SUCCESS;

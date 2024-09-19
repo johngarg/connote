@@ -12,23 +12,23 @@
 #include "utils.h"
 
 // Function to check if directory exists and create it if it doesn't
-bool make_directory_if_not_exists(const char *path) {
-    struct stat st = {0};
+int make_directory_if_not_exists(const char *path) {
+  struct stat st = {0};
 
-    // Check if the directory exists
-    if (stat(path, &st) == -1) {
-        // Directory doesn't exist, attempt to create it
-        if (mkdir(path, 0700) == -1) {
-            fprintf(stderr, "ERROR: Making connote directory failed.\n");
-            return false;
-        } else {
-            printf("Directory created: %s\n", path);
-        }
+  // Check if the directory exists
+  if (stat(path, &st) == -1) {
+    // Directory doesn't exist, attempt to create it
+    if (mkdir(path, 0700) == -1) {
+      fprintf(stderr, "ERROR: Making connote directory failed.\n");
+      return FAILURE;
     } else {
-        printf("Directory already exists: %s\n", path);
+      printf("Directory created: %s\n", path);
     }
+  } else {
+    printf("Directory already exists: %s\n", path);
+  }
 
-    return true;
+  return SUCCESS;
 }
 
 // Function to trim a string
@@ -85,31 +85,31 @@ void replace_spaces_and_underscores(char *str, char s) {
 }
 
 void replace_ch1_with_ch2_in_dest(char *source, char *dest, char ch1, char ch2, size_t dest_size) {
-    // NULL pointer check
-    if (source == NULL || dest == NULL) {
-        return; // Handle the error as appropriate (e.g., log an error)
+  // NULL pointer check
+  if (source == NULL || dest == NULL) {
+    return; // Handle the error as appropriate (e.g., log an error)
+  }
+
+  // Calculate the length of the source string
+  size_t source_len = strlen(source);
+
+  // Ensure dest has enough space to hold the result (including null terminator)
+  if (dest_size <= source_len) {
+    // Error handling: dest is not large enough
+    return;
+  }
+
+  // Iterate over the source string and replace characters
+  for (size_t i = 0; i < source_len; i++) {
+    if (source[i] == ch1) {
+      dest[i] = ch2;
+    } else {
+      dest[i] = source[i];
     }
+  }
 
-    // Calculate the length of the source string
-    size_t source_len = strlen(source);
-
-    // Ensure dest has enough space to hold the result (including null terminator)
-    if (dest_size <= source_len) {
-        // Error handling: dest is not large enough
-        return;
-    }
-
-    // Iterate over the source string and replace characters
-    for (size_t i = 0; i < source_len; i++) {
-        if (source[i] == ch1) {
-            dest[i] = ch2;
-        } else {
-            dest[i] = source[i];
-        }
-    }
-
-    // Null-terminate the destination string
-    dest[source_len] = '\0';
+  // Null-terminate the destination string
+  dest[source_len] = '\0';
 }
 
 // Replace non-ascii characters with spaces
@@ -122,7 +122,7 @@ void replace_non_ascii(char *str) {
   }
 }
 
-bool file_creation_timestamp(const char *file_path, char *dest) {
+int file_creation_timestamp(const char *file_path, char *dest) {
   // Copies creation timestamp of file located at `file_path` to the string
   // `dest`
   struct stat file_stat;
@@ -130,7 +130,7 @@ bool file_creation_timestamp(const char *file_path, char *dest) {
   // Get file status information
   if (stat(file_path, &file_stat) == -1) {
     fprintf(stderr, "ERROR: Problem reading creation date of %s.\n", file_path);
-    return false;
+    return FAILURE;
   }
 
   // Convert the st_ctime (metadata change time) to local time
@@ -140,19 +140,19 @@ bool file_creation_timestamp(const char *file_path, char *dest) {
   // termination.
   assert(strftime(dest, ID_LEN + 1, ID_FORMAT, t) == ID_LEN);
 
-  return true;
+  return SUCCESS;
 }
 
 // Puts the current date and time into `dest`
-bool generate_timestamp_now(char *dest) {
+int generate_timestamp_now(char *dest) {
   struct tm *local;
   time_t t = time(NULL);
   local = localtime(&t);
   if (strftime(dest, ID_LEN + 1, ID_FORMAT, local) == 0) {
     fprintf(stderr, "ERROR: Failed to format time when generating new timestamp.\n");
-    return false;
+    return FAILURE;
   };
-  return true;
+  return SUCCESS;
 }
 
 bool has_valid_id(const char *str) {
@@ -174,7 +174,7 @@ bool has_valid_id(const char *str) {
   return true;
 }
 
-bool match_pattern_against_str(char *str, char *pattern, size_t start, size_t end) {
+int match_pattern_against_str(char *str, char *pattern, size_t start, size_t end) {
   // Matches the regex `pattern` against `str` and puts the start and end
   // indices of the successful match in `start` and `end`. Returns `true` if
   // match found and false otherwise
@@ -186,7 +186,7 @@ bool match_pattern_against_str(char *str, char *pattern, size_t start, size_t en
   reti = regcomp(&regex, pattern, REG_EXTENDED);
   if (reti) {
     fprintf(stderr, "Could not compile regex\n");
-    return false;
+    return FAILURE;
   }
 
   // Execute the regular expression
@@ -196,7 +196,7 @@ bool match_pattern_against_str(char *str, char *pattern, size_t start, size_t en
     // As defined, all regex expressions contain the match in index 1
     start = matches[1].rm_so;
     end = matches[1].rm_eo;
-    return true;
+    return SUCCESS;
   }
 
   if (reti != REG_NOMATCH) {
@@ -209,11 +209,11 @@ bool match_pattern_against_str(char *str, char *pattern, size_t start, size_t en
   // Free compiled regular expression
   regfree(&regex);
 
-  return false;
+  return FAILURE;
 }
 
 // Function to copy a slice into a pre-allocated destination string
-bool str_copy_slice(const char *src, size_t start, size_t end, char *dest, size_t dest_size) {
+int str_copy_slice(const char *src, size_t start, size_t end, char *dest, size_t dest_size) {
   size_t length = end - start;
   bool overflow = false;
 
@@ -229,11 +229,11 @@ bool str_copy_slice(const char *src, size_t start, size_t end, char *dest, size_
   // Add null terminator to the destination string
   dest[length] = '\0';
 
-  return !overflow;
+  return overflow ? FAILURE : SUCCESS;
 }
 
 // Function to append a slice of a string to a buffer using snprintf
-bool str_append_slice(const char *src, size_t start, size_t end, char *dest, size_t dest_size, size_t *current_pos) {
+int str_append_slice(const char *src, size_t start, size_t end, char *dest, size_t dest_size, size_t *current_pos) {
   size_t length = end - start;
   bool overflow = false;
 
@@ -247,25 +247,25 @@ bool str_append_slice(const char *src, size_t start, size_t end, char *dest, siz
   snprintf(dest + *current_pos, dest_size - *current_pos, "%.*s", (int)length, src + start);
   *current_pos += length; // Update the current position
 
-  return !overflow;
+  return overflow ? FAILURE : SUCCESS;
 }
 
 // In denote this takes an extra parameter: `dir_path`
-bool format_file_name(char *dir_path, char *id, char *sig, char *title, char **keywords, size_t kw_count, char *extension,
-                      char *dest_filename) {
+int format_file_name(char *dir_path, char *id, char *sig, char *title, char **keywords, size_t kw_count,
+                     char *extension, char *dest_filename) {
   size_t max_len_without_ext = MAX_NAME_LEN - strlen(extension) - 1;
   size_t current_pos = 0;
 
   // If there is no ID, we cannot construct a filename
   if (id == NULL || id[0] == '\0') {
     fprintf(stderr, "ERROR: No ID passed to format_file_name.\n");
-    return false;
+    return FAILURE;
   }
 
   // If there is no directory we cannot format the file path
   if (dir_path == NULL || dir_path[0] == '\0') {
     fprintf(stderr, "ERROR: No directory path passed to format_file_name.\n");
-    return false;
+    return FAILURE;
   }
 
   str_append_slice(dir_path, 0, strlen(dir_path), dest_filename, max_len_without_ext, &current_pos);
@@ -298,10 +298,10 @@ bool format_file_name(char *dir_path, char *id, char *sig, char *title, char **k
   }
 
   if (extension != NULL && extension[0] == '.') {
-      str_append_slice(extension, 0, strlen(extension), dest_filename, max_len_without_ext, &current_pos);
+    str_append_slice(extension, 0, strlen(extension), dest_filename, max_len_without_ext, &current_pos);
   }
 
-  return true;
+  return SUCCESS;
 }
 
 void date_from_id(char *id, char *dest) {
@@ -387,8 +387,8 @@ void write_frontmatter_to_buffer(char *buffer, size_t buffer_size, char *id, cha
   written = snprintf(buf_ptr, remaining_size, "---");
 }
 
-bool connote_file(char *dir_path, char *id, char *sig, char *title, char **keywords, size_t kw_count, char *extension,
-                  char *dest_filename) {
+int connote_file(char *dir_path, char *id, char *sig, char *title, char **keywords, size_t kw_count, char *extension,
+                 char *dest_filename) {
   // Write a new file and (1) provide it with a denote-compliant filename from
   // the data passed in and save this to `dest_filename`, and (2) write the
   // associated frontmatter to the beginning of the file.
@@ -398,8 +398,8 @@ bool connote_file(char *dir_path, char *id, char *sig, char *title, char **keywo
   write_frontmatter_to_buffer(buffer, sizeof(buffer), id, sig, title, keywords, kw_count);
 
   if (strcmp(extension, ".md") != 0) {
-      fprintf(stderr, "ERROR: Only markdown files with yaml frontmatter are currently supported.\n");
-      return false;
+    fprintf(stderr, "ERROR: Only markdown files with yaml frontmatter are currently supported.\n");
+    return FAILURE;
   }
 
   format_file_name(dir_path, id, sig, title, keywords, kw_count, extension, dest_filename);
@@ -411,7 +411,7 @@ bool connote_file(char *dir_path, char *id, char *sig, char *title, char **keywo
     fclose(f);
   }
 
-  return true;
+  return SUCCESS;
 }
 
 void downcase(char *str) {
