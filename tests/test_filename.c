@@ -8,7 +8,7 @@ void test_format_file_name() {
   char filename[MAX_NAME_LEN];
   char kw1[16] = "kw1";
   char kw2[16] = "kw2";
-  char *keywords[2] = {kw1, kw2};
+  char *keywords[] = {kw1, kw2};
 
   // Initialise filename to empty string
   filename[0] = '\0';
@@ -35,10 +35,12 @@ void test_write_frontmatter_to_buffer() {
   char buffer[2048]; // Allocate a buffer to hold the output
 
   // Sample data
-  char *id = "20240903T123456";
-  char *sig = "12a=1a7=5";
-  char *title = "Sample Title";
-  char *keywords[] = {"keyword1", "keyword2"};
+  char id[16] = "20240903T123456";
+  char sig[32] = "12a=1a7=5";
+  char title[64] = "Sample Title";
+  char kw1[32] = "keyword1";
+  char kw2[32] = "keyword2";
+  char *keywords[] = {kw1, kw2};
   size_t kw_count = 2;
 
   write_frontmatter_to_buffer(buffer, sizeof(buffer), id, sig, title, keywords, kw_count);

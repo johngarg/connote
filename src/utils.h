@@ -26,7 +26,7 @@ void append_slice(const char *src, size_t start, size_t end, char *dest, size_t 
 bool match_pattern_against_str(char *str, char *pattern, size_t start, size_t end);
 bool str_copy_slice(const char *src, size_t start, size_t end, char *dest, size_t dest_size);
 bool str_append_slice(const char *src, size_t start, size_t end, char *dest, size_t dest_size, size_t *current_pos);
-void replace_ch1_with_ch2_in_dest(char *source, char *dest, char ch1, char ch2);
+void replace_ch1_with_ch2_in_dest(char *source, char *dest, char ch1, char ch2, size_t dest_size);
 void trim_string(char *str);
 void replace_consecutive_chars(char *str, char c);
 void downcase(char *str);
@@ -40,7 +40,7 @@ bool file_exists(const char *filename);
 bool generate_timestamp_now(char *dest);
 bool format_file_name(char *dir_path, char *id, char *sig, char *title, char **keywords, size_t kw_count, char *extension,
                       char *dest_filename);
-bool connote_file(char *dir_path, char *id, char *sig, char *title, char **keywords, size_t kw_count, int type,
+bool connote_file(char *dir_path, char *id, char *sig, char *title, char **keywords, size_t kw_count, char *extension,
                   char *dest_filename);
 void write_frontmatter_to_buffer(char *buffer, size_t buffer_size, char *id, char *sig, char *title, char **keywords,
                                  size_t kw_count);

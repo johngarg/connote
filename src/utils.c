@@ -64,16 +64,32 @@ void replace_spaces_and_underscores(char *str, char s) {
   }
 }
 
-void replace_ch1_with_ch2_in_dest(char *source, char *dest, char ch1, char ch2) {
-  size_t i;
-  for (i = 0; i < strlen(source); i++) {
-    if (source[i] == ch1) {
-      dest[i] = ch2;
-    } else {
-      dest[i] = source[i];
+void replace_ch1_with_ch2_in_dest(char *source, char *dest, char ch1, char ch2, size_t dest_size) {
+    // NULL pointer check
+    if (source == NULL || dest == NULL) {
+        return; // Handle the error as appropriate (e.g., log an error)
     }
-  }
-  dest[i] = '\0'; // Terminate the string
+
+    // Calculate the length of the source string
+    size_t source_len = strlen(source);
+
+    // Ensure dest has enough space to hold the result (including null terminator)
+    if (dest_size <= source_len) {
+        // Error handling: dest is not large enough
+        return;
+    }
+
+    // Iterate over the source string and replace characters
+    for (size_t i = 0; i < source_len; i++) {
+        if (source[i] == ch1) {
+            dest[i] = ch2;
+        } else {
+            dest[i] = source[i];
+        }
+    }
+
+    // Null-terminate the destination string
+    dest[source_len] = '\0';
 }
 
 // Replace non-ascii characters with spaces
@@ -336,7 +352,7 @@ void write_frontmatter_to_buffer(char *buffer, size_t buffer_size, char *id, cha
   // SIGNATURE
   // Replace '=' with '.' in the signature
   char new_sig[MAX_SIG_LEN];
-  replace_ch1_with_ch2_in_dest(sig, new_sig, '=', '.');
+  replace_ch1_with_ch2_in_dest(sig, new_sig, '=', '.', MAX_SIG_LEN);
 
   written = snprintf(buf_ptr, remaining_size, "signature: %s\n", sig ? new_sig : "");
   buf_ptr += written;
@@ -351,27 +367,23 @@ void write_frontmatter_to_buffer(char *buffer, size_t buffer_size, char *id, cha
   written = snprintf(buf_ptr, remaining_size, "---");
 }
 
-bool connote_file(char *dir_path, char *id, char *sig, char *title, char **keywords, size_t kw_count, int type,
+bool connote_file(char *dir_path, char *id, char *sig, char *title, char **keywords, size_t kw_count, char *extension,
                   char *dest_filename) {
   // Write a new file and (1) provide it with a denote-compliant filename from
   // the data passed in and save this to `dest_filename`, and (2) write the
   // associated frontmatter to the beginning of the file.
-  //
-  // The `type` argument is:
-  //   0: For an org file
-  //   1: For a markdown file with yaml frontmatter
-  //   2: For a markdown file with toml frontmatter
-  //   3: For a txt file
 
   char buffer[2048];
   // Write the full title to the frontmatter as provided by the user
   write_frontmatter_to_buffer(buffer, sizeof(buffer), id, sig, title, keywords, kw_count);
 
-  // TODO Clean up the title for use in the filename
-  // char new_title[MAX_NAME_LEN];
-  // clean_title(title, new_title);
+  if (strcmp(extension, ".md") != 0) {
+      fprintf(stderr, "ERROR: Only markdown files with yaml frontmatter are currently supported.\n");
+      return false;
+  }
 
-  format_file_name(dir_path, id, sig, title, keywords, kw_count, ".md", dest_filename);
+  format_file_name(dir_path, id, sig, title, keywords, kw_count, extension, dest_filename);
+  printf("dest_filename: %s\n", dest_filename);
 
   FILE *f = fopen(dest_filename, "w");
   if (f) {

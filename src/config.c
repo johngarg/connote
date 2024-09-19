@@ -52,10 +52,11 @@ bool connote_dir(char *connote_path) {
 
     // Expand the home directory path
     const char *home = getenv("HOME");
-    char config_path[512] = {0};
-    snprintf(config_path, sizeof(config_path), "%s/.connote", home);
+    char config_path[MAX_NAME_LEN] = {0};
+    snprintf(config_path, MAX_NAME_LEN, "%s/.connote", home);
 
-    parse_connote_config(config_path, connote_path, sizeof(connote_path));
+    parse_connote_config(config_path, connote_path, MAX_NAME_LEN);
+    printf("Config file successfully parsed:\n  connote_dir = %s\n", connote_path);
 
     return true;
 }

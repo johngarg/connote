@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
   bool keywords_set = false;
   bool use_connote_dir = false;
 
-  while ((opt = getopt_long(argc, argv, "t:k:s:y", long_options, NULL)) != -1) {
+  while ((opt = getopt_long(argc, argv, "t:k:s:yd", long_options, NULL)) != -1) {
     switch (opt) {
     case 't':
       title = optarg; // Get title argument
@@ -111,10 +111,11 @@ int main(int argc, char *argv[]) {
   test_argument_parsing(argv, argc, sig, title, kw_count, keywords);
 
   // Where is the file going?
-  char dir_path[512];
+  char dir_path[MAX_NAME_LEN];
   // Get the directory in which the note will be written, save this to
   // `dir_path`
   output_dir(use_connote_dir, dir_path);
+  printf("Output dir: %s\n", dir_path);
 
   // Allocate MAX_NAME_LEN for new file name
   char new_file_name[MAX_NAME_LEN];
@@ -174,13 +175,15 @@ int main(int argc, char *argv[]) {
     }
   } else if (strcmp(cmd, "file") == 0) {
     // Here we are writing a new file
+    printf("Making new file...\n");
 
     // Make a new ID based on the current time
     bool timestamp_generation_okay = generate_timestamp_now(id);
     if (!timestamp_generation_okay)
       return EXIT_FAILURE;
 
-    connote_file(dir_path, id, sig, title, keywords, kw_count, 1, new_file_name);
+    printf("Here...\n");
+    connote_file(dir_path, id, sig, title, keywords, kw_count, ".md", new_file_name);
     printf("%s", new_file_name);
   }
 
