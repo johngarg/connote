@@ -4,7 +4,7 @@ BIN_DIR = bin
 
 all: connote test
 
-connote: src/connote.c src/utils.c
+connote: src/connote.c src/config.c src/utils.c
 	@mkdir -p $(BIN_DIR)
 	$(CC) $(CFLAGS) -o $(BIN_DIR)/note $^
 

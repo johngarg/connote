@@ -2,10 +2,11 @@
 #define UTILS_H_
 
 #include <stdio.h>
+#include <stdbool.h>
 
 // Macros
 #define MAX_KEYS 16
-#define MAX_NAME_LEN 512
+#define MAX_NAME_LEN 2048 // Max path len for file
 #define MAX_SIG_LEN 64
 #define UNWANTED_CHARS "[]{}!@#$%^&*()=+'\"?,.\\|;:~`‘’“”/]*"
 #define ID_FORMAT "%Y%m%dT%H%M%S"
@@ -37,10 +38,10 @@ bool file_creation_timestamp(const char *file_path, char *dest);
 bool has_valid_id(const char *str);
 bool file_exists(const char *filename);
 bool generate_timestamp_now(char *dest);
-bool construct_filename(char *id, char *sig, char *title, char **keywords, size_t kw_count, int type,
-                        char *dest_filename);
-bool write_new_connote_file(char *id, char *sig, char *title, char **keywords, size_t kw_count, int type,
-                            char *dest_filename);
+bool format_file_name(char *dir_path, char *id, char *sig, char *title, char **keywords, size_t kw_count, char *extension,
+                      char *dest_filename);
+bool connote_file(char *dir_path, char *id, char *sig, char *title, char **keywords, size_t kw_count, int type,
+                  char *dest_filename);
 void write_frontmatter_to_buffer(char *buffer, size_t buffer_size, char *id, char *sig, char *title, char **keywords,
                                  size_t kw_count);
 

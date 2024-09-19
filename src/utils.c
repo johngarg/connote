@@ -214,26 +214,40 @@ bool str_append_slice(const char *src, size_t start, size_t end, char *dest, siz
   return !overflow;
 }
 
-bool construct_filename(char *id, char *sig, char *title, char **keywords, size_t kw_count, int type,
-                        char *dest_filename) {
-  size_t max_len_without_ext = MAX_NAME_LEN - 4;
+// In denote this takes an extra parameter: `dir_path`
+bool format_file_name(char *dir_path, char *id, char *sig, char *title, char **keywords, size_t kw_count, char *extension,
+                      char *dest_filename) {
+  size_t max_len_without_ext = MAX_NAME_LEN - strlen(extension) - 1;
   size_t current_pos = 0;
 
   // If there is no ID, we cannot construct a filename
   if (id == NULL || id[0] == '\0') {
-    fprintf(stderr, "ERROR: No ID passed to construct_filename.\n");
+    fprintf(stderr, "ERROR: No ID passed to format_file_name.\n");
     return false;
   }
 
+  // If there is no directory we cannot format the file path
+  if (dir_path == NULL || dir_path[0] == '\0') {
+    fprintf(stderr, "ERROR: No directory path passed to format_file_name.\n");
+    return false;
+  }
+
+  str_append_slice(dir_path, 0, strlen(dir_path), dest_filename, max_len_without_ext, &current_pos);
+
+  assert(strlen(id) == ID_LEN);
   str_append_slice(id, 0, strlen(id), dest_filename, max_len_without_ext, &current_pos);
 
   if (sig != NULL && sig[0] != '\0') {
     str_append_slice("==", 0, 2, dest_filename, max_len_without_ext, &current_pos);
+    // Sluggify signature
+    sluggify_signature(sig);
     str_append_slice(sig, 0, strlen(sig), dest_filename, max_len_without_ext, &current_pos);
   }
 
   if (title != NULL && title[0] != '\0') {
     str_append_slice("--", 0, 2, dest_filename, max_len_without_ext, &current_pos);
+    // Sluggify title
+    sluggify_title(title);
     str_append_slice(title, 0, strlen(title), dest_filename, max_len_without_ext, &current_pos);
   }
 
@@ -241,18 +255,28 @@ bool construct_filename(char *id, char *sig, char *title, char **keywords, size_
     str_append_slice("_", 0, 1, dest_filename, max_len_without_ext, &current_pos);
     for (size_t i = 0; i < kw_count; i++) {
       str_append_slice("_", 0, 1, dest_filename, max_len_without_ext, &current_pos);
+      // Sluggify keyword
+      sluggify_keyword(keywords[i]);
       str_append_slice(keywords[i], 0, strlen(keywords[i]), dest_filename, max_len_without_ext, &current_pos);
     }
   }
 
-  if (type == 1) {
-    str_append_slice(".md", 0, 3, dest_filename, max_len_without_ext, &current_pos);
-    return true;
+  if (extension != NULL && extension[0] == '.') {
+      str_append_slice(extension, 0, strlen(extension), dest_filename, max_len_without_ext, &current_pos);
   }
 
-  fprintf(stderr, "ERROR: Currently only markdown format with yaml frontmatter "
-                  "is supported.\n");
-  return false;
+  return true;
+}
+
+void date_from_id(char *id, char *dest) {
+  struct tm t = {0};
+  // Parse the input string "YYYYMMDDTHHMMSS"
+  sscanf(id, "%4d%2d%2dT%2d%2d%2d", &t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &t.tm_sec);
+  // Adjust the values for tm structure
+  t.tm_year -= 1900; // tm_year is years since 1900
+  t.tm_mon -= 1;     // tm_mon is 0-11
+  // Format the time into the desired output format
+  strftime(dest, 32, "%Y-%m-%dT%H:%M:%S", &t);
 }
 
 // Function to write frontmatter to a buffer instead of a file
@@ -273,15 +297,8 @@ void write_frontmatter_to_buffer(char *buffer, size_t buffer_size, char *id, cha
 
   // DATE
   // Get date from ID
-  struct tm t = {0};
-  // Parse the input string "YYYYMMDDTHHMMSS"
-  sscanf(id, "%4d%2d%2dT%2d%2d%2d", &t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &t.tm_sec);
-  // Adjust the values for tm structure
-  t.tm_year -= 1900; // tm_year is years since 1900
-  t.tm_mon -= 1;     // tm_mon is 0-11
-  // Format the time into the desired output format
   char date[20]; // Buffer to hold the formatted time
-  strftime(date, sizeof(date), "%Y-%m-%dT%H:%M:%S", &t);
+  date_from_id(id, date);
 
   // Write the formatted date to the buffer
   written = snprintf(buf_ptr, remaining_size, "date: %s\n", date);
@@ -334,8 +351,8 @@ void write_frontmatter_to_buffer(char *buffer, size_t buffer_size, char *id, cha
   written = snprintf(buf_ptr, remaining_size, "---");
 }
 
-bool write_new_connote_file(char *id, char *sig, char *title, char **keywords, size_t kw_count, int type,
-                            char *dest_filename) {
+bool connote_file(char *dir_path, char *id, char *sig, char *title, char **keywords, size_t kw_count, int type,
+                  char *dest_filename) {
   // Write a new file and (1) provide it with a denote-compliant filename from
   // the data passed in and save this to `dest_filename`, and (2) write the
   // associated frontmatter to the beginning of the file.
@@ -354,7 +371,7 @@ bool write_new_connote_file(char *id, char *sig, char *title, char **keywords, s
   // char new_title[MAX_NAME_LEN];
   // clean_title(title, new_title);
 
-  construct_filename(id, sig, title, keywords, kw_count, type, dest_filename);
+  format_file_name(dir_path, id, sig, title, keywords, kw_count, ".md", dest_filename);
 
   FILE *f = fopen(dest_filename, "w");
   if (f) {

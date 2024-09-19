@@ -6,8 +6,17 @@
 #include <string.h>
 
 #include "utils.h"
+#include "config.h"
 
 // connote <cmd> --title <title> --keywords <kw1> <kw2> --sig <sig>
+
+void output_dir(bool use_connote_dir, char *dir_path) {
+  if (use_connote_dir) {
+    connote_dir(dir_path);
+  } else {
+    snprintf(dir_path, sizeof(dir_path), "./");
+  }
+}
 
 void test_argument_parsing(char **argv, int argc, char *sig, char *title, int kw_count, char **keywords) {
   printf("TITLE: %s\n", title ? title : "None");
@@ -50,6 +59,7 @@ int main(int argc, char *argv[]) {
       { "keywords", required_argument, 0, 'k'},
       {      "sig", required_argument, 0, 's'},
       {"from-yaml",       no_argument, 0, 'y'},
+      {      "dir",       no_argument, 0, 'd'},
       {          0,                 0, 0,   0}  // End of options
   };
 
@@ -58,6 +68,7 @@ int main(int argc, char *argv[]) {
   bool signature_set = false;
   bool title_set = false;
   bool keywords_set = false;
+  bool use_connote_dir = false;
 
   while ((opt = getopt_long(argc, argv, "t:k:s:y", long_options, NULL)) != -1) {
     switch (opt) {
@@ -86,6 +97,11 @@ int main(int argc, char *argv[]) {
       // This is reached when --from-yaml is encountered
       printf("From YAML flag is set.\n");
       break;
+    case 'd':
+      // This means write the file to the connote directory set in the config
+      // file
+      use_connote_dir = true;
+      break;
     default:
       exit(EXIT_FAILURE);
     }
@@ -93,6 +109,12 @@ int main(int argc, char *argv[]) {
 
   // Output the parsed arguments for testing purposes
   test_argument_parsing(argv, argc, sig, title, kw_count, keywords);
+
+  // Where is the file going?
+  char dir_path[512];
+  // Get the directory in which the note will be written, save this to
+  // `dir_path`
+  output_dir(use_connote_dir, dir_path);
 
   // Allocate MAX_NAME_LEN for new file name
   char new_file_name[MAX_NAME_LEN];
@@ -158,7 +180,7 @@ int main(int argc, char *argv[]) {
     if (!timestamp_generation_okay)
       return EXIT_FAILURE;
 
-    write_new_connote_file(id, sig, title, keywords, kw_count, 1, new_file_name);
+    connote_file(dir_path, id, sig, title, keywords, kw_count, 1, new_file_name);
     printf("%s", new_file_name);
   }
 

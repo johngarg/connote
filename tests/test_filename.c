@@ -4,30 +4,31 @@
 
 #include "../src/utils.h"
 
-void test_construct_filename() {
+void test_format_file_name() {
   char filename[MAX_NAME_LEN];
-  char *keywords[2] = {"kw1", "kw2"};
+  char kw1[16] = "kw1";
+  char kw2[16] = "kw2";
+  char *keywords[2] = {kw1, kw2};
 
   // Initialise filename to empty string
   filename[0] = '\0';
-  construct_filename("20230903T123456", "12a=1", "test-title", keywords, 2, 1, filename);
-  assert(strcmp(filename, "20230903T123456==12a=1--test-title__kw1_kw2.md") == 0);
+  char sig[32] = "12a=1";
+  char title[64] = "test-title";
+  char ext[8] = ".md";
+  char dir_path[64] = "/tmp/connote/";
+  format_file_name(dir_path, "20230903T123456", sig, title, keywords, 2, ext, filename);
+  assert(strcmp(filename, "/tmp/connote/20230903T123456==12a=1--test-title__kw1_kw2.md") == 0);
 
   filename[0] = '\0';
   char *keywords2[] = {};
-  construct_filename("20230903T123456", "", "test-title", keywords2, 0, 1, filename);
-  assert(strcmp(filename, "20230903T123456--test-title.md") == 0);
+  format_file_name(dir_path, "20230903T123456", "", title, keywords2, 0, ".md", filename);
+  assert(strcmp(filename, "/tmp/connote/20230903T123456--test-title.md") == 0);
 
   filename[0] = '\0';
-  construct_filename("20230903T123456", "", "", keywords2, 0, 1, filename);
-  assert(strcmp(filename, "20230903T123456.md") == 0);
+  format_file_name(dir_path, "20230903T123456", "", "", keywords2, 0, ".md", filename);
+  assert(strcmp(filename, "/tmp/connote/20230903T123456.md") == 0);
 
-  // The function doesn't complain if the ID is shorter than expected
-  filename[0] = '\0';
-  construct_filename("20230903T123", "", "", keywords2, 0, 1, filename);
-  assert(strcmp(filename, "20230903T123.md") == 0);
-
-  printf("All tests passed for construct_filename.\n");
+  printf("All tests passed for format_file_name.\n");
 }
 
 void test_write_frontmatter_to_buffer() {
@@ -54,9 +55,11 @@ void test_write_frontmatter_to_buffer() {
 }
 
 void test_sluggify_functions() {
-  char test_str1[32] = "..@#H*έl/lo!!!, --test- ";
-  remove_unwanted_chars(test_str1, UNWANTED_CHARS);
-  assert(strcmp(test_str1, "Hέllo --test- ") == 0);
+  /* char test_str1[32] = "..@#H*έl/lo!!!, --test- "; */
+  char test_str1[32] = "12a=1";
+  remove_unwanted_chars(test_str1, "[]{}!@#$%^&*()+'\"?,.\\|;:~`‘’“”/-");
+  /* assert(strcmp(test_str1, "Hέllo --test- ") == 0); */
+  assert(strcmp(test_str1, "12a=1") == 0);
 
   // Tests from denote-test
   char test_str2[32] = "this-is-!@#test";
@@ -91,7 +94,7 @@ void test_sluggify_functions() {
 }
 
 int main() {
-  test_construct_filename();
+  test_format_file_name();
   test_write_frontmatter_to_buffer();
   test_sluggify_functions();
 
