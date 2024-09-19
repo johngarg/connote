@@ -141,28 +141,36 @@ int main(int argc, char *argv[]) {
       // Check whether the file exists
       assert(file_exists(argv[i]));
 
-      // Try and read the id
+      // Attempt to read the creation date of the file for use as the file ID
       if (has_valid_id(argv[i])) {
-        strncpy(id, argv[i], 15);
-        id[15] = '\0';
+        strncpy(id, argv[i], ID_LEN);
+        id[ID_LEN] = '\0';
       } else {
-        // Returns true if extraction of creation timestamp is
-        // successful
-        if (file_creation_timestamp(argv[i], id) != SUCCESS)
+        // Check whether extraction of creation timestamp is successful
+        if (file_creation_timestamp(argv[i], id) != SUCCESS) {
+          // TODO Prompt the user for a custom timestamp
+          fprintf(stderr, "ERROR: Could not retrieve timestamp from file %s.\n", argv[i]);
           return EXIT_FAILURE;
+        }
       }
+      // try_read_id(argv[i], id)
 
-      assert(0 && "Not implemented");
-
-      // Try and read the signature
+      // Try and read the signature only if we aren't overwriting it
       if (!signature_set) {
+        // try_read_sig(argv[i], sig);
       }
-      // Try and read the title
+      // Try and read the title only if we aren't overwriting it
       if (!title_set) {
+        // try_read_title(argv[i], title);
       }
-      // Try and read the keywords
+      // Try and read the keywords only if we aren't overwriting them
       if (!keywords_set) {
+        // try_read_keywords(argv[i], keywords, kw_count);
       }
+
+      // Rename the file
+      format_file_name(dir_path, id, sig, title, keywords, kw_count, ".md", new_file_name);
+      printf("dest_filename: %s\n", new_file_name);
     }
   } else if (strcmp(cmd, "file") == 0) {
     // Here we are writing a new file
