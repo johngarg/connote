@@ -100,6 +100,7 @@ int main(int argc, char *argv[]) {
     case 'd':
       // This means write the file to the connote directory set in the config
       // file
+      printf("'Use connote directory' is set.\n");
       use_connote_dir = true;
       break;
     default:
@@ -115,7 +116,6 @@ int main(int argc, char *argv[]) {
   // Get the directory in which the note will be written, save this to
   // `dir_path`
   output_dir(use_connote_dir, dir_path);
-  printf("Output dir: %s\n", dir_path);
 
   // Allocate MAX_NAME_LEN for new file name
   char new_file_name[MAX_NAME_LEN];
@@ -157,9 +157,6 @@ int main(int argc, char *argv[]) {
 
       assert(0 && "Not implemented");
 
-      /* remove_unwanted_chars(title); */
-      /* printf("Cleaned: %s\n", title); */
-
       // Try and read the signature
       if (!signature_set) {
       }
@@ -175,14 +172,12 @@ int main(int argc, char *argv[]) {
     }
   } else if (strcmp(cmd, "file") == 0) {
     // Here we are writing a new file
-    printf("Making new file...\n");
 
     // Make a new ID based on the current time
     bool timestamp_generation_okay = generate_timestamp_now(id);
     if (!timestamp_generation_okay)
       return EXIT_FAILURE;
 
-    printf("Here...\n");
     connote_file(dir_path, id, sig, title, keywords, kw_count, ".md", new_file_name);
     printf("%s", new_file_name);
   }

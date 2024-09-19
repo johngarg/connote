@@ -11,6 +11,26 @@
 
 #include "utils.h"
 
+// Function to check if directory exists and create it if it doesn't
+bool make_directory_if_not_exists(const char *path) {
+    struct stat st = {0};
+
+    // Check if the directory exists
+    if (stat(path, &st) == -1) {
+        // Directory doesn't exist, attempt to create it
+        if (mkdir(path, 0700) == -1) {
+            fprintf(stderr, "ERROR: Making connote directory failed.\n");
+            return false;
+        } else {
+            printf("Directory created: %s\n", path);
+        }
+    } else {
+        printf("Directory already exists: %s\n", path);
+    }
+
+    return true;
+}
+
 // Function to trim a string
 void trim_string(char *str) {
   size_t start = 0;

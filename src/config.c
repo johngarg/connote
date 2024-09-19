@@ -58,5 +58,8 @@ bool connote_dir(char *connote_path) {
     parse_connote_config(config_path, connote_path, MAX_NAME_LEN);
     printf("Config file successfully parsed:\n  connote_dir = %s\n", connote_path);
 
+    // Make the config directory if it doesn't already exist
+    make_directory_if_not_exists((const char*) connote_path);
+
     return true;
 }

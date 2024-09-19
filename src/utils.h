@@ -33,6 +33,9 @@ void downcase(char *str);
 void rtrim_tokens(char *str, const char *unwanted_chars);
 void ltrim_tokens(char *str, const char *unwanted_chars);
 
+// Dir stuff
+bool make_directory_if_not_exists(const char *path);
+
 // file stuff
 bool file_creation_timestamp(const char *file_path, char *dest);
 bool has_valid_id(const char *str);
