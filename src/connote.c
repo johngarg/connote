@@ -42,7 +42,7 @@ void print_usage() {
 
 int main(int argc, char *argv[]) {
   // Expect at least three args: `connote <cmd> <arg>`
-  if (argc < 3) {
+  if (argc < 2) {
     print_usage();
     exit(EXIT_FAILURE);
   }
@@ -178,8 +178,11 @@ int main(int argc, char *argv[]) {
     if (!timestamp_generation_okay)
       return EXIT_FAILURE;
 
+    // Create new file with components and write frontmatter
     connote_file(dir_path, id, sig, title, keywords, kw_count, ".md", new_file_name);
+    // Print the created file for the user
     printf("%s", new_file_name);
+
   }
 
   return EXIT_SUCCESS;
