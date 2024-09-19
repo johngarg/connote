@@ -9,8 +9,7 @@
 
 // connote <cmd> --title <title> --keywords <kw1> <kw2> --sig <sig>
 
-void test_argument_parsing(char **argv, int argc, char *sig, char *title,
-                           int kw_count, char **keywords) {
+void test_argument_parsing(char **argv, int argc, char *sig, char *title, int kw_count, char **keywords) {
   printf("TITLE: %s\n", title ? title : "None");
   printf("KEYWORDS: \n");
   if (kw_count > 0) {
@@ -47,11 +46,11 @@ int main(int argc, char *argv[]) {
 
   // Define long options
   static struct option long_options[] = {
-      {"title", required_argument, 0, 't'},
-      {"keywords", required_argument, 0, 'k'},
-      {"sig", required_argument, 0, 's'},
-      {"from-yaml", no_argument, 0, 'y'},
-      {0, 0, 0, 0} // End of options
+      {    "title", required_argument, 0, 't'},
+      { "keywords", required_argument, 0, 'k'},
+      {      "sig", required_argument, 0, 's'},
+      {"from-yaml",       no_argument, 0, 'y'},
+      {          0,                 0, 0,   0}  // End of options
   };
 
   // Parsing options
@@ -159,8 +158,7 @@ int main(int argc, char *argv[]) {
     if (!timestamp_generation_okay)
       return EXIT_FAILURE;
 
-    write_new_connote_file(id, sig, title, keywords, kw_count, 1,
-                           new_file_name);
+    write_new_connote_file(id, sig, title, keywords, kw_count, 1, new_file_name);
     printf("%s", new_file_name);
   }
 

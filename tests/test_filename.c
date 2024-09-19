@@ -10,15 +10,12 @@ void test_construct_filename() {
 
   // Initialise filename to empty string
   filename[0] = '\0';
-  construct_filename("20230903T123456", "12a=1", "test-title", keywords, 2, 1,
-                     filename);
-  assert(strcmp(filename, "20230903T123456==12a=1--test-title__kw1_kw2.md") ==
-         0);
+  construct_filename("20230903T123456", "12a=1", "test-title", keywords, 2, 1, filename);
+  assert(strcmp(filename, "20230903T123456==12a=1--test-title__kw1_kw2.md") == 0);
 
   filename[0] = '\0';
   char *keywords2[] = {};
-  construct_filename("20230903T123456", "", "test-title", keywords2, 0, 1,
-                     filename);
+  construct_filename("20230903T123456", "", "test-title", keywords2, 0, 1, filename);
   assert(strcmp(filename, "20230903T123456--test-title.md") == 0);
 
   filename[0] = '\0';
@@ -43,8 +40,7 @@ void test_write_frontmatter_to_buffer() {
   char *keywords[] = {"keyword1", "keyword2"};
   size_t kw_count = 2;
 
-  write_frontmatter_to_buffer(buffer, sizeof(buffer), id, sig, title, keywords,
-                              kw_count);
+  write_frontmatter_to_buffer(buffer, sizeof(buffer), id, sig, title, keywords, kw_count);
   assert(strcmp(buffer, "---\n"
                         "title: Sample Title\n"
                         "date: 2024-09-03T12:34:56\n"
