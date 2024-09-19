@@ -25,7 +25,7 @@ bool parse_connote_config(const char *filename, char *connote_path, size_t conno
     }
 
     char line[MAX_CONFIG_LINE_LENGTH];
-    while (fgets(line, sizeof(line), file)) {
+    while (fgets(line, MAX_CONFIG_LINE_LENGTH, file)) {
         char *key = strtok(line, "=");
         char *value = strtok(NULL, "=");
 

@@ -14,7 +14,7 @@ void output_dir(bool use_connote_dir, char *dir_path) {
   if (use_connote_dir) {
     connote_dir(dir_path);
   } else {
-    snprintf(dir_path, sizeof(dir_path), "./");
+    snprintf(dir_path, MAX_NAME_LEN, "./");
   }
 }
 
@@ -167,8 +167,6 @@ int main(int argc, char *argv[]) {
       if (!keywords_set) {
       }
 
-      // Write the new filename to new_file_name
-      /* make_filename(new_file_name, id, sig, title, keywords); */
     }
   } else if (strcmp(cmd, "file") == 0) {
     // Here we are writing a new file
@@ -181,7 +179,7 @@ int main(int argc, char *argv[]) {
     // Create new file with components and write frontmatter
     connote_file(dir_path, id, sig, title, keywords, kw_count, ".md", new_file_name);
     // Print the created file for the user
-    printf("%s", new_file_name);
+    printf("%s\n", new_file_name);
 
   }
 

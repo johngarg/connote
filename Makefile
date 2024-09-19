@@ -6,7 +6,7 @@ all: connote test
 
 connote: src/connote.c src/config.c src/utils.c
 	@mkdir -p $(BIN_DIR)
-	$(CC) $(CFLAGS) -o $(BIN_DIR)/note $^
+	$(CC) $(CFLAGS) -o $(BIN_DIR)/connote $^
 
 test: tests/test_*.c src/utils.c
 	$(CC) $(CFLAGS) -o $(BIN_DIR)/$@ $^
