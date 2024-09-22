@@ -129,10 +129,26 @@ int main(int argc, char *argv[]) {
     non_option_args++;
   }
 
-  // connote file command
-  if (non_option_args > 1 && strcmp(cmd, "file") == 0) {
-    // If argc > 1 and the first argument is "file", we are trying to rename
-    // an existing file
+  // connote new
+  if (strcmp(cmd, "new") == 0) {
+    // Here we are writing a new file
+
+    // Make a new ID based on the current time
+    if (generate_timestamp_now(id) != SUCCESS)
+      return EXIT_FAILURE;
+
+    // Create new file with components and write frontmatter
+    connote_file(dir_path, id, sig, title, keywords, kw_count, ".md", new_file_name);
+    // Print the created file for the user
+    printf("%s\n", new_file_name);
+
+    return EXIT_SUCCESS;
+  }
+
+  // connote rename
+  if (strcmp(cmd, "rename") == 0) {
+    if (non_option_args < 2)
+      return EXIT_FAILURE;
 
     optind++; // Increment past the <cmd> argument
     // Loop over input files and rename them
@@ -172,18 +188,30 @@ int main(int argc, char *argv[]) {
       format_file_name(dir_path, id, sig, title, keywords, kw_count, ".md", new_file_name);
       printf("dest_filename: %s\n", new_file_name);
     }
-  } else if (strcmp(cmd, "file") == 0) {
-    // Here we are writing a new file
 
-    // Make a new ID based on the current time
-    if (generate_timestamp_now(id) != SUCCESS)
-      return EXIT_FAILURE;
-
-    // Create new file with components and write frontmatter
-    connote_file(dir_path, id, sig, title, keywords, kw_count, ".md", new_file_name);
-    // Print the created file for the user
-    printf("%s\n", new_file_name);
+    return EXIT_SUCCESS;
   }
 
-  return EXIT_SUCCESS;
+  if (strcmp(cmd, "backlinks") == 0) {
+    assert(false && "Not implemented yet");
+    return EXIT_SUCCESS;
+  }
+
+  if (strcmp(cmd, "search") == 0) {
+    assert(false && "Not implemented yet");
+    return EXIT_SUCCESS;
+  }
+
+  if (strcmp(cmd, "doctor") == 0) {
+    assert(false && "Not implemented yet");
+    return EXIT_SUCCESS;
+  }
+
+  if (strcmp(cmd, "journal") == 0) {
+    assert(false && "Not implemented yet");
+    return EXIT_SUCCESS;
+  }
+
+  // No command matched
+  return EXIT_FAILURE;
 }
