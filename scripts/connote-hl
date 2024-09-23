@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# CONNOTE-HL Script
+#
+# This script reads filenames from standard input and highlights specific
+# parts of the filename using ANSI color codes. It highlights the timestamp,
+# signature, title, and keywords in different colors.
+#
+# Usage:
+#     <command> | pkm-hl
+#
+# The script is designed to be used in a pipeline to colorize filenames
+# output by other scripts.
+
+# Define color codes
+TIME_COLOR=$'\033[0;34m'        # Blue
+SIGNATURE_COLOR=$'\033[0;31m'   # Red
+KEYWORDS_COLOR=$'\033[0;35m'    # Magenta
+SEPARATOR_COLOR=$'\033[0;37m'   # Light Grey
+TITLE_COLOR=$'\033[0m'          # Title = Reset
+RESET_COLOR=$'\033[0m'          # Reset
+
+# Read filenames from standard input
+while IFS= read -r filename; do
+    # Use sed to match and colorize parts of the filename
+    echo "$filename" | sed -E \
+        -e "s/([0-9]{8})T([0-9]{6})/${TIME_COLOR}\1${SEPARATOR_COLOR}T${TIME_COLOR}\2${RESET_COLOR}/" \
+        -e "s/==([^-]+)/${SEPARATOR_COLOR}==${SIGNATURE_COLOR}\1${RESET_COLOR}/" \
+        -e "s/--([^_]+)/${SEPARATOR_COLOR}--${TITLE_COLOR}\1${RESET_COLOR}/" \
+        -e "s/__([^.]+)/${SEPARATOR_COLOR}__${KEYWORDS_COLOR}\1${RESET_COLOR}/"
+done
