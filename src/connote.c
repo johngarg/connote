@@ -14,7 +14,7 @@ void output_dir(bool use_connote_dir, char *dir_path) {
   if (use_connote_dir) {
     connote_dir(dir_path);
   } else {
-    snprintf(dir_path, MAX_NAME_LEN, "./");
+    snprintf(dir_path, MAX_PATH_LEN, "./");
   }
 }
 
@@ -112,13 +112,13 @@ int main(int argc, char *argv[]) {
   test_argument_parsing(argv, argc, sig, title, kw_count, keywords);
 
   // Where is the file going?
-  char dir_path[MAX_NAME_LEN];
+  char dir_path[MAX_PATH_LEN];
   // Get the directory in which the note will be written, save this to
   // `dir_path`
   output_dir(use_connote_dir, dir_path);
 
-  // Allocate MAX_NAME_LEN for new file name
-  char new_file_name[MAX_NAME_LEN];
+  // Allocate MAX_PATH_LEN for new file name
+  char new_file_name[MAX_PATH_LEN];
   // Allocate a buffer of 15 chars + the null terminator for the ID
   char id[ID_LEN + 1];
 
@@ -159,26 +159,30 @@ int main(int argc, char *argv[]) {
 
       // Attempt to read the creation date of the file for use as the file ID
       if (has_valid_id(argv[i])) {
-        strncpy(id, argv[i], ID_LEN);
-        id[ID_LEN] = '\0';
+        read_id(argv[i], id);
       } else {
         // Check whether extraction of creation timestamp is successful
         if (file_creation_timestamp(argv[i], id) != SUCCESS) {
-          // TODO Prompt the user for a custom timestamp
-          fprintf(stderr, "ERROR: Could not retrieve timestamp from file %s.\n", argv[i]);
+          fprintf(stderr, "ERROR: Could not retrieve timestamp from file %s.\n",
+                  argv[i]);
           return EXIT_FAILURE;
         }
       }
-      // try_read_id(argv[i], id)
 
       // Try and read the signature only if we aren't overwriting it
       if (!signature_set) {
-        // try_read_sig(argv[i], sig);
+        char sig[MAX_SIG_LEN] = {0};
+        try_and_read(argv[i], sig, SIG_REGEX, MAX_SIG_LEN);
+        printf("sig: %s\n", sig);
       }
+
       // Try and read the title only if we aren't overwriting it
       if (!title_set) {
-        // try_read_title(argv[i], title);
+        char title[MAX_TITLE_LEN] = {0};
+        try_and_read(argv[i], title, TITLE_REGEX, MAX_TITLE_LEN);
+        printf("title: %s\n", title);
       }
+
       // Try and read the keywords only if we aren't overwriting them
       if (!keywords_set) {
         // try_read_keywords(argv[i], keywords, kw_count);

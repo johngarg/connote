@@ -5,7 +5,7 @@
 #include "../src/utils.h"
 
 void test_format_file_name() {
-  char filename[MAX_NAME_LEN];
+  char filename[MAX_PATH_LEN];
   char kw1[16] = "kw1";
   char kw2[16] = "kw2";
   char *keywords[] = {kw1, kw2};
@@ -95,10 +95,35 @@ void test_sluggify_functions() {
   printf("All tests passed for sluggify functions.\n");
 }
 
+void test_regex_functions() {
+
+  size_t start = 0;
+  size_t end = 0;
+  int outcome;
+
+  char *filename = "20240923T174318==12=a.md";
+
+  outcome = match_pattern_against_str(filename, SIG_REGEX, &start, &end);
+  assert(outcome == SUCCESS);
+  assert(start == 17);
+  assert(end == 21);
+
+  // Just one equals sign should fail
+  outcome = match_pattern_against_str("20240923T174318=12=a.md", SIG_REGEX, &start, &end);
+  assert(outcome == FAILURE);
+
+  // Try and read functions
+  char sig[MAX_SIG_LEN] = {0};
+  try_and_read(filename, sig, SIG_REGEX, MAX_SIG_LEN);
+
+  printf("All tests passed for regex functions.\n");
+}
+
 int main() {
   test_format_file_name();
   test_write_frontmatter_to_buffer();
   test_sluggify_functions();
+  test_regex_functions();
 
   return 0;
 }

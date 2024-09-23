@@ -6,7 +6,8 @@
 
 // Macros
 #define MAX_KEYS 16
-#define MAX_NAME_LEN 2048 // Max path len for file
+#define MAX_TITLE_LEN 512
+#define MAX_PATH_LEN 2048
 #define MAX_SIG_LEN 64
 #define UNWANTED_CHARS "[]{}!@#$%^&*()=+'\"?,.\\|;:~`‘’“”/]*"
 #define ID_FORMAT "%Y%m%dT%H%M%S"
@@ -25,7 +26,7 @@ void remove_unwanted_chars(char *str, const char *unwanted_chars);
 void replace_spaces_and_underscores(char *str, char s);
 void replace_non_ascii(char *str);
 void append_slice(const char *src, size_t start, size_t end, char *dest, size_t dest_size, size_t *current_pos);
-int match_pattern_against_str(char *str, char *pattern, size_t start, size_t end);
+int match_pattern_against_str(char *str, char *pattern, size_t *start, size_t *end);
 int str_copy_slice(const char *src, size_t start, size_t end, char *dest, size_t dest_size);
 int str_append_slice(const char *src, size_t start, size_t end, char *dest, size_t dest_size, size_t *current_pos);
 void replace_ch1_with_ch2_in_dest(char *source, char *dest, char ch1, char ch2, size_t dest_size);
@@ -40,7 +41,6 @@ int make_directory_if_not_exists(const char *path);
 
 // file stuff
 int file_creation_timestamp(const char *file_path, char *dest);
-bool has_valid_id(const char *str);
 bool file_exists(const char *filename);
 int generate_timestamp_now(char *dest);
 int format_file_name(char *dir_path, char *id, char *sig, char *title, char **keywords, size_t kw_count,
@@ -57,5 +57,11 @@ void sluggify_title(char *str);
 void sluggify_signature(char *str);
 void sluggify_keyword(char *str);
 void sluggify_keywords(char **keywords, size_t kw_count);
+
+// Reading filename
+bool has_valid_id(const char *str);
+void read_id(const char *filename, char *id);
+int try_read_sig(char *filename, char *sig);
+int try_and_read(char *filename, char *component, char *regex, size_t component_len);
 
 #endif // UTILS_H_

@@ -155,26 +155,7 @@ int generate_timestamp_now(char *dest) {
   return SUCCESS;
 }
 
-bool has_valid_id(const char *str) {
-  // Expects input like "20240908T123445". This would need to be changed if
-  // ID_FORMAT is changed
-  if (str[8] != 'T')
-    return false;
-
-  for (int i = 0; i < 8; ++i) {
-    if (!isdigit(str[i]))
-      return false;
-  }
-
-  for (int i = 9; i < ID_LEN; ++i) {
-    if (!isdigit(str[i]))
-      return false;
-  }
-
-  return true;
-}
-
-int match_pattern_against_str(char *str, char *pattern, size_t start, size_t end) {
+int match_pattern_against_str(char *str, char *pattern, size_t *start, size_t *end) {
   // Matches the regex `pattern` against `str` and puts the start and end
   // indices of the successful match in `start` and `end`. Returns `true` if
   // match found and false otherwise
@@ -194,8 +175,8 @@ int match_pattern_against_str(char *str, char *pattern, size_t start, size_t end
   if (!reti && matches[1].rm_so != -1) {
     // Match found!
     // As defined, all regex expressions contain the match in index 1
-    start = matches[1].rm_so;
-    end = matches[1].rm_eo;
+    *start = (size_t) matches[1].rm_so;
+    *end = (size_t) matches[1].rm_eo;
     return SUCCESS;
   }
 
@@ -253,7 +234,7 @@ int str_append_slice(const char *src, size_t start, size_t end, char *dest, size
 // In denote this takes an extra parameter: `dir_path`
 int format_file_name(char *dir_path, char *id, char *sig, char *title, char **keywords, size_t kw_count,
                      char *extension, char *dest_filename) {
-  size_t max_len_without_ext = MAX_NAME_LEN - strlen(extension) - 1;
+  size_t max_len_without_ext = MAX_PATH_LEN - strlen(extension) - 1;
   size_t current_pos = 0;
 
   // If there is no ID, we cannot construct a filename
@@ -546,4 +527,41 @@ void sluggify_keywords(char **keywords, size_t kw_count) {
   for (size_t i = 0; i < kw_count; i++) {
     sluggify_keyword(keywords[i]);
   }
+}
+
+bool has_valid_id(const char *str) {
+  // Expects input like "20240908T123445". This would need to be changed if
+  // ID_FORMAT is changed
+  if (str[8] != 'T')
+    return false;
+
+  for (int i = 0; i < 8; ++i) {
+    if (!isdigit(str[i]))
+      return false;
+  }
+
+  for (int i = 9; i < ID_LEN; ++i) {
+    if (!isdigit(str[i]))
+      return false;
+  }
+
+  return true;
+}
+
+void read_id(const char *filename, char *id) {
+  strncpy(id, filename, ID_LEN);
+  id[ID_LEN] = '\0';
+}
+
+int try_and_read(char *filename, char *component, char *regex, size_t component_len) {
+  size_t start = 0;
+  size_t end = 0;
+
+  int outcome = match_pattern_against_str(filename, regex, &start, &end);
+  if (outcome == SUCCESS) {
+    str_copy_slice(filename, start, end, component, component_len);
+    return SUCCESS;
+  }
+
+  return FAILURE;
 }
