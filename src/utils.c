@@ -553,7 +553,9 @@ void read_id(const char *filename, char *id) {
   id[ID_LEN] = '\0';
 }
 
-int try_and_read(char *filename, char *component, char *regex, size_t component_len) {
+// Try and match the `regex` pattern against the filename. If there is a match,
+// write the match to `component` and return SUCCESS, otherwise return FAILURE
+int try_match_and_write_component(char *filename, char *component, char *regex, size_t component_len) {
   size_t start = 0;
   size_t end = 0;
 
@@ -564,4 +566,54 @@ int try_and_read(char *filename, char *component, char *regex, size_t component_
   }
 
   return FAILURE;
+}
+
+int split_at_char(char *str, char ch, char **array, size_t array_size,
+                  size_t max_str_len) {
+  if (str == NULL || array == NULL || array_size == 0 || max_str_len == 0) {
+    return -1; // Error: Invalid input
+  }
+
+  size_t count = 0; // Tracks how many substrings are found
+  char *start = str;
+  char *end = NULL;
+
+  while ((end = strchr(start, ch)) != NULL) {
+    if (count >= array_size) {
+      return -1; // Error: Array size is too small
+    }
+
+    // Get the length of the current substring
+    size_t length = end - start;
+
+    // Limit the length to max_str_len - 1 to ensure space for the null
+    // terminator
+    if (length >= max_str_len) {
+      length = max_str_len - 1;
+    }
+
+    // Copy the substring into the pre-allocated buffer
+    strncpy(array[count], start, length);
+    array[count][length] = '\0'; // Null-terminate the substring
+    count++;
+
+    start = end + 1; // Move past the delimiter
+  }
+
+  // Add the last part after the final delimiter
+  if (count < array_size) {
+    // Limit the length of the final substring
+    size_t length = strlen(start);
+    if (length >= max_str_len) {
+      length = max_str_len - 1;
+    }
+
+    strncpy(array[count], start, length);
+    array[count][length] = '\0'; // Null-terminate the substring
+    count++;
+  } else {
+    return -1; // Error: Array size is too small
+  }
+
+  return count; // Return the number of substrings
 }

@@ -6,6 +6,7 @@
 
 // Macros
 #define MAX_KEYS 16
+#define MAX_KW_LEN 64
 #define MAX_TITLE_LEN 512
 #define MAX_PATH_LEN 2048
 #define MAX_SIG_LEN 64
@@ -35,6 +36,7 @@ void replace_consecutive_chars(char *str, char c);
 void downcase(char *str);
 void rtrim_tokens(char *str, const char *unwanted_chars);
 void ltrim_tokens(char *str, const char *unwanted_chars);
+int split_at_char(char *str, char ch, char **array, size_t array_size, size_t max_str_len);
 
 // Dir stuff
 int make_directory_if_not_exists(const char *path);
@@ -61,7 +63,5 @@ void sluggify_keywords(char **keywords, size_t kw_count);
 // Reading filename
 bool has_valid_id(const char *str);
 void read_id(const char *filename, char *id);
-int try_read_sig(char *filename, char *sig);
-int try_and_read(char *filename, char *component, char *regex, size_t component_len);
-
+int try_match_and_write_component(char *filename, char *component, char *regex, size_t component_len);
 #endif // UTILS_H_

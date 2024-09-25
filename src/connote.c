@@ -169,27 +169,39 @@ int main(int argc, char *argv[]) {
         }
       }
 
-      // Try and read the signature only if we aren't overwriting it
+      char filename_sig[MAX_SIG_LEN] = {0};
       if (!signature_set) {
-        char sig[MAX_SIG_LEN] = {0};
-        try_and_read(argv[i], sig, SIG_REGEX, MAX_SIG_LEN);
-        printf("sig: %s\n", sig);
+        try_match_and_write_component(argv[i], filename_sig, SIG_REGEX, MAX_SIG_LEN);
       }
 
-      // Try and read the title only if we aren't overwriting it
+      char filename_title[MAX_TITLE_LEN] = {0};
       if (!title_set) {
-        char title[MAX_TITLE_LEN] = {0};
-        try_and_read(argv[i], title, TITLE_REGEX, MAX_TITLE_LEN);
-        printf("title: %s\n", title);
+        try_match_and_write_component(argv[i], filename_title, TITLE_REGEX, MAX_TITLE_LEN);
       }
 
-      // Try and read the keywords only if we aren't overwriting them
       if (!keywords_set) {
-        // try_read_keywords(argv[i], keywords, kw_count);
+        char matched_keywords[MAX_KEYS*MAX_KW_LEN] = {0};
+        int outcome = try_match_and_write_component(argv[i], matched_keywords, KW_REGEX, MAX_KEYS*MAX_KW_LEN);
+        if (outcome == SUCCESS) {
+          char keywords_array[MAX_KW_LEN][MAX_KEYS] = {0};
+          // Create an array of pointers to the rows of keywords
+          for (int i = 0; i < MAX_KEYS; i++) {
+            keywords[i] = keywords_array[i];
+          }
+          kw_count = split_at_char(matched_keywords, '_', keywords, MAX_KEYS, MAX_KW_LEN);
+        }
       }
 
       // Rename the file
-      format_file_name(dir_path, id, sig, title, keywords, kw_count, ".md", new_file_name);
+      format_file_name(
+        dir_path,
+        id,
+        sig ? sig : filename_sig,
+        title ? title : filename_title,
+        keywords,
+        kw_count,
+        ".md",
+        new_file_name);
       printf("dest_filename: %s\n", new_file_name);
     }
 

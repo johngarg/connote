@@ -112,9 +112,15 @@ void test_regex_functions() {
   outcome = match_pattern_against_str("20240923T174318=12=a.md", SIG_REGEX, &start, &end);
   assert(outcome == FAILURE);
 
-  // Try and read functions
+  // Filename matching functions
   char sig[MAX_SIG_LEN] = {0};
-  try_and_read(filename, sig, SIG_REGEX, MAX_SIG_LEN);
+  try_match_and_write_component(filename, sig, SIG_REGEX, MAX_SIG_LEN);
+  assert(strcmp(sig, "12=a") == 0);
+
+  char *filename_2 = "20240923T174318==12=a__kw1_kw2_kw3.md";
+  char kws[MAX_KW_LEN*MAX_KEYS] = {0};
+  try_match_and_write_component(filename_2, kws, KW_REGEX, MAX_KW_LEN*MAX_KEYS);
+  assert(strcmp(kws, "kw1_kw2_kw3") == 0);
 
   printf("All tests passed for regex functions.\n");
 }
