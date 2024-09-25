@@ -175,8 +175,8 @@ int match_pattern_against_str(char *str, char *pattern, size_t *start, size_t *e
   if (!reti && matches[1].rm_so != -1) {
     // Match found!
     // As defined, all regex expressions contain the match in index 1
-    *start = (size_t) matches[1].rm_so;
-    *end = (size_t) matches[1].rm_eo;
+    *start = (size_t)matches[1].rm_so;
+    *end = (size_t)matches[1].rm_eo;
     return SUCCESS;
   }
 
@@ -568,8 +568,7 @@ int try_match_and_write_component(char *filename, char *component, char *regex, 
   return FAILURE;
 }
 
-int split_at_char(char *str, char ch, char **array, size_t array_size,
-                  size_t max_str_len) {
+int split_at_char(char *str, char ch, char **array, size_t array_size, size_t max_str_len) {
   if (str == NULL || array == NULL || array_size == 0 || max_str_len == 0) {
     return -1; // Error: Invalid input
   }

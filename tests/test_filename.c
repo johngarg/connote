@@ -118,8 +118,8 @@ void test_regex_functions() {
   assert(strcmp(sig, "12=a") == 0);
 
   char *filename_2 = "20240923T174318==12=a__kw1_kw2_kw3.md";
-  char kws[MAX_KW_LEN*MAX_KEYS] = {0};
-  try_match_and_write_component(filename_2, kws, KW_REGEX, MAX_KW_LEN*MAX_KEYS);
+  char kws[MAX_KW_LEN * MAX_KEYS] = {0};
+  try_match_and_write_component(filename_2, kws, KW_REGEX, MAX_KW_LEN * MAX_KEYS);
   assert(strcmp(kws, "kw1_kw2_kw3") == 0);
 
   printf("All tests passed for regex functions.\n");

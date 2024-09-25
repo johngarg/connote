@@ -163,8 +163,7 @@ int main(int argc, char *argv[]) {
       } else {
         // Check whether extraction of creation timestamp is successful
         if (file_creation_timestamp(argv[i], id) != SUCCESS) {
-          fprintf(stderr, "ERROR: Could not retrieve timestamp from file %s.\n",
-                  argv[i]);
+          fprintf(stderr, "ERROR: Could not retrieve timestamp from file %s.\n", argv[i]);
           return EXIT_FAILURE;
         }
       }
@@ -180,8 +179,8 @@ int main(int argc, char *argv[]) {
       }
 
       if (!keywords_set) {
-        char matched_keywords[MAX_KEYS*MAX_KW_LEN] = {0};
-        int outcome = try_match_and_write_component(argv[i], matched_keywords, KW_REGEX, MAX_KEYS*MAX_KW_LEN);
+        char matched_keywords[MAX_KEYS * MAX_KW_LEN] = {0};
+        int outcome = try_match_and_write_component(argv[i], matched_keywords, KW_REGEX, MAX_KEYS * MAX_KW_LEN);
         if (outcome == SUCCESS) {
           char keywords_array[MAX_KW_LEN][MAX_KEYS] = {0};
           // Create an array of pointers to the rows of keywords
@@ -193,15 +192,8 @@ int main(int argc, char *argv[]) {
       }
 
       // Rename the file
-      format_file_name(
-        dir_path,
-        id,
-        sig ? sig : filename_sig,
-        title ? title : filename_title,
-        keywords,
-        kw_count,
-        ".md",
-        new_file_name);
+      format_file_name(dir_path, id, sig ? sig : filename_sig, title ? title : filename_title, keywords, kw_count,
+                       ".md", new_file_name);
       printf("dest_filename: %s\n", new_file_name);
     }
 
