@@ -113,9 +113,6 @@ int main(int argc, char *argv[]) {
 
   // Where is the file going?
   char dir_path[MAX_PATH_LEN];
-  // Get the directory in which the note will be written, save this to
-  // `dir_path`
-  output_dir(use_connote_dir, dir_path);
 
   // Allocate MAX_PATH_LEN for new file name
   char new_file_name[MAX_PATH_LEN];
@@ -137,6 +134,10 @@ int main(int argc, char *argv[]) {
     if (generate_timestamp_now(id) != SUCCESS)
       return EXIT_FAILURE;
 
+    // Get the directory in which the note will be written, save this to
+    // `dir_path`
+    output_dir(use_connote_dir, dir_path);
+
     // Create new file with components and write frontmatter
     connote_file(dir_path, id, sig, title, keywords, kw_count, ".md", new_file_name);
     // Print the created file for the user
@@ -153,6 +154,8 @@ int main(int argc, char *argv[]) {
     optind++; // Increment past the <cmd> argument
     // Loop over input files and rename them
     for (int i = optind; i < argc; i++) {
+
+      printf("argv[%d]: %s\n", i, argv[i]);
 
       // Check whether the file exists
       assert(file_exists(argv[i]));
@@ -185,16 +188,34 @@ int main(int argc, char *argv[]) {
           char keywords_array[MAX_KW_LEN][MAX_KEYS] = {0};
           // Create an array of pointers to the rows of keywords
           for (int i = 0; i < MAX_KEYS; i++) {
+            // Just overwrite the existing `keywords` array here
             keywords[i] = keywords_array[i];
           }
           kw_count = split_at_char(matched_keywords, '_', keywords, MAX_KEYS, MAX_KW_LEN);
         }
       }
 
-      // Rename the file
+      // Construct new file name
+      int last_slash = last_slash_pos(argv[i]);
+      if (last_slash != -1) {
+        strncpy(dir_path, argv[i], last_slash+1);
+        dir_path[last_slash+1] = '\0';
+      } else {
+        strncpy(dir_path, "./", 2);
+        dir_path[2] = '\0';
+      }
+
+      printf("dir_path: %s\n", dir_path);
       format_file_name(dir_path, id, sig ? sig : filename_sig, title ? title : filename_title, keywords, kw_count,
                        ".md", new_file_name);
-      printf("dest_filename: %s\n", new_file_name);
+
+      // Rename the file
+      if (rename(argv[i], new_file_name) == 0) {
+        printf("%s -> %s\n", argv[i], new_file_name);
+      } else {
+        fprintf(stderr, "ERROR: Could not rename file %s\n", argv[i]);
+      }
+
     }
 
     return EXIT_SUCCESS;

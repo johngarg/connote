@@ -616,3 +616,14 @@ int split_at_char(char *str, char ch, char **array, size_t array_size, size_t ma
 
   return count; // Return the number of substrings
 }
+
+int last_slash_pos(char *path) {
+  char last_slash = -1;
+  for (int i = 0; path[i]; i++) {
+    if (path[i] == '/') {
+      last_slash = i;
+    }
+  }
+
+  return last_slash;
+}

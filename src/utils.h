@@ -37,6 +37,7 @@ void downcase(char *str);
 void rtrim_tokens(char *str, const char *unwanted_chars);
 void ltrim_tokens(char *str, const char *unwanted_chars);
 int split_at_char(char *str, char ch, char **array, size_t array_size, size_t max_str_len);
+int last_slash_pos(char *path);
 
 // Dir stuff
 int make_directory_if_not_exists(const char *path);
