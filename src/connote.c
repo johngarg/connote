@@ -158,7 +158,10 @@ int main(int argc, char *argv[]) {
       printf("argv[%d]: %s\n", i, argv[i]);
 
       // Check whether the file exists
-      assert(file_exists(argv[i]));
+      if (!file_exists(argv[i])) {
+        fprintf(stderr, "ERROR: File does not exist: %s\n", argv[i]);
+        return EXIT_FAILURE;
+      }
 
       // Attempt to read the creation date of the file for use as the file ID
       if (has_valid_id(argv[i])) {
